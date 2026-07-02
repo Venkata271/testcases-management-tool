@@ -1,0 +1,2921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Case Manager</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script src="https://apis.google.com/js/api.js" async></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--bg2:#f7f7f6;--bg3:#f0efec;
+  --text:#1a1a18;--text2:#6b6b68;--text3:#9b9b98;
+  --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.18);
+  --info-bg:#e6f1fb;--info-text:#0c447c;--info-border:#85b7eb;
+  --danger-bg:#fcebeb;--danger-text:#a32d2d;
+  --success-bg:#e1f5ee;--success-text:#0f6e56;
+  --warn-bg:#faeeda;--warn-text:#854f0b;
+  --r:8px;--rl:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1e1e1c;--bg2:#282825;--bg3:#323230;
+  --text:#f0efec;--text2:#a8a8a4;--text3:#6b6b68;
+  --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.18);
+  --info-bg:#0c2a40;--info-text:#85b7eb;--info-border:#185fa5;
+  --danger-bg:#3a1414;--danger-text:#f09595;
+  --success-bg:#0a2a1e;--success-text:#5dcaa5;
+  --warn-bg:#2e1f06;--warn-text:#ef9f27;
+}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:var(--text);background:var(--bg3);min-height:100vh}
+
+/* NAV TABS */
+.app-shell{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{background:var(--bg);border-bottom:0.5px solid var(--border);padding:0 20px;display:flex;align-items:stretch;justify-content:space-between;flex-shrink:0}
+.topbar-left{display:flex;align-items:stretch;gap:0}
+.logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:500;padding-right:20px;border-right:0.5px solid var(--border);margin-right:4px}
+.logo i{color:var(--info-text);font-size:17px}
+.nav-tab{padding:0 16px;font-size:13px;color:var(--text2);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px;height:48px}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--info-text);border-bottom-color:var(--info-text);font-weight:500}
+.topbar-right{display:flex;align-items:center;gap:8px;padding:8px 0}
+.saved-badge{font-size:11px;color:var(--success-text);background:var(--success-bg);padding:3px 10px;border-radius:20px;display:none}
+.saved-badge.show{display:inline-block}
+
+/* USERNAME SCREEN */
+.user-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;gap:24px;background:var(--bg3)}
+.user-screen.active{display:flex}
+.user-screen-logo{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:600;color:var(--text)}
+.user-screen-logo i{font-size:28px;color:var(--info-text)}
+.user-screen-card{background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--rl);padding:32px 36px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:20px;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.user-screen-card h2{font-size:18px;font-weight:500;text-align:center;color:var(--text)}
+.user-screen-card p{font-size:13px;color:var(--text2);text-align:center;line-height:1.5}
+.user-input-wrap{display:flex;flex-direction:column;gap:6px}
+.user-input-wrap label{font-size:12px;font-weight:500;color:var(--text2)}
+.user-input-wrap input{font-size:15px;padding:10px 14px;border-radius:var(--r);border:1.5px solid var(--border2);background:var(--bg2);color:var(--text);outline:none;width:100%;font-family:inherit}
+.user-input-wrap input:focus{border-color:var(--info-border);background:var(--bg)}
+.user-input-wrap input.error{border-color:var(--danger-text)}
+.user-err{font-size:12px;color:var(--danger-text);display:none}
+.user-err.show{display:block}
+.user-continue-btn{width:100%;padding:11px;font-size:14px;font-weight:500;border-radius:var(--r);border:none;background:var(--info-text);color:#fff;cursor:pointer}
+.user-continue-btn:hover{opacity:.9}
+.user-continue-btn:active{transform:scale(.98)}
+.user-welcome{font-size:13px;color:var(--text3);text-align:center}
+.user-welcome strong{color:var(--text)}
+
+/* TEAM PICKER SCREEN */
+.team-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;gap:32px}
+.team-screen-logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:600;color:var(--text)}
+.team-screen-logo i{font-size:26px;color:var(--info-text)}
+.team-screen h2{font-size:15px;font-weight:400;color:var(--text2);text-align:center}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;width:100%;max-width:680px}
+.team-card{background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--rl);padding:20px 16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;position:relative;transition:border-color .15s}
+.team-card:hover{border-color:var(--info-border);background:var(--info-bg)}
+.team-card-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.team-card-name{font-size:14px;font-weight:500}
+.team-card-count{font-size:11px;color:var(--text3)}
+.team-card-del{position:absolute;top:8px;right:8px;padding:3px 5px;border-radius:4px;border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:13px;display:none}
+.team-card:hover .team-card-del{display:flex;align-items:center}
+.team-card-del:hover{color:var(--danger-text);background:var(--danger-bg)}
+.team-card.add-card{border-style:dashed;color:var(--text3)}
+.team-card.add-card:hover{color:var(--info-text);border-color:var(--info-border);background:var(--info-bg)}
+
+/* TEAM BADGE in topbar */
+.team-badge{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:var(--r);border:0.5px solid var(--border2);cursor:pointer;font-size:12px;background:transparent;color:var(--text)}
+.team-badge:hover{background:var(--bg2)}
+.team-badge .team-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* SHARED */
+.page{display:none;flex:1;overflow:hidden;min-height:0}
+.page.active{display:flex}
+.btn{font-size:12px;padding:6px 13px;border-radius:var(--r);border:0.5px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn:hover{background:var(--bg2)}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--info-bg);color:var(--info-text);border-color:var(--info-border)}
+.btn.primary:hover{opacity:.88}
+.btn.success{background:var(--success-bg);color:var(--success-text);border-color:var(--success-text)}
+.btn.danger-soft{color:var(--danger-text);border-color:transparent}
+.btn.danger-soft:hover{background:var(--danger-bg)}
+.btn.sm{font-size:11px;padding:4px 9px}
+.badge{font-size:11px;font-weight:500;padding:2px 9px;border-radius:20px;display:inline-block;white-space:nowrap}
+.badge.high{background:#fcebeb;color:#a32d2d}
+.badge.medium{background:#faeeda;color:#854f0b}
+.badge.low{background:#e1f5ee;color:#0f6e56}
+.badge.Passed,.badge.pass{background:#e1f5ee;color:#0f6e56}
+.badge.Failed,.badge.fail{background:#fcebeb;color:#a32d2d}
+.badge.Blocked,.badge.blocked{background:#faeeda;color:#854f0b}
+.badge.untested,.badge.Untested{background:#f1efe8;color:#5f5e5a}
+.badge.regression{background:#eeedfe;color:#3c3489}
+.badge.smoke{background:#e6f1fb;color:#0c447c}
+.badge.sanity{background:#fbeaf0;color:#72243e}
+.badge.exploratory{background:#faeeda;color:#633806}
+.badge.functional{background:#e1f5ee;color:#085041}
+.field label{font-size:11px;color:var(--text2);margin-bottom:5px;display:block;font-weight:500}
+.field input,.field textarea,.field select{width:100%;font-size:13px;padding:7px 10px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-family:inherit;resize:vertical;outline:none}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--info-border)}
+.field textarea{min-height:56px;line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.section-label{font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;padding-bottom:4px;border-bottom:0.5px solid var(--border)}
+
+/* VERSION HISTORY */
+.v-item{padding:8px 10px;border-radius:var(--r);cursor:pointer;border:0.5px solid transparent;margin-bottom:4px}
+.v-item:hover{background:var(--bg);border-color:var(--border)}
+.v-item.active{background:var(--bg);border-color:var(--info-border)}
+.v-item-time{font-size:12px;font-weight:500;color:var(--text)}
+.v-item-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.v-item-auto{font-size:10px;color:var(--text3);background:var(--bg3);padding:1px 6px;border-radius:10px}
+.v-item-manual{font-size:10px;color:var(--info-text);background:var(--info-bg);padding:1px 6px;border-radius:10px}
+.v-diff-row{display:flex;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:12px;align-items:baseline}
+.v-diff-row:last-child{border-bottom:none}
+.v-diff-label{width:80px;flex-shrink:0;font-weight:500;color:var(--text2)}
+.v-added{color:var(--success-text);background:var(--success-bg);padding:2px 6px;border-radius:4px;margin-right:4px}
+.v-removed{color:var(--danger-text);background:var(--danger-bg);padding:2px 6px;border-radius:4px;margin-right:4px;text-decoration:line-through}
+.v-unchanged{color:var(--text3);padding:2px 6px}
+.v-stat{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;margin-right:6px;margin-bottom:4px}
+.multi-sel-wrap{position:relative;flex-shrink:0}
+.multi-sel-btn{font-size:12px;padding:6px 10px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;min-width:100px}
+.multi-sel-btn:hover{background:var(--bg3)}
+.multi-sel-btn.has-sel{border-color:var(--info-border);background:var(--info-bg);color:var(--info-text)}
+.multi-sel-drop{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--rl);box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:170px;overflow:hidden}
+.multi-sel-drop.open{display:block}
+.multi-sel-opts{padding:6px}
+.multi-sel-opt{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:var(--r);cursor:pointer;font-size:13px;user-select:none}
+.multi-sel-opt:hover{background:var(--bg2)}
+.multi-sel-opt input[type=checkbox]{accent-color:var(--info-text);cursor:pointer;width:14px;height:14px;flex-shrink:0}
+.multi-sel-foot{padding:6px 8px;border-top:0.5px solid var(--border);display:flex;justify-content:flex-end}
+.type-count-pill{font-size:11px;font-weight:600;background:var(--info-text);color:#fff;border-radius:20px;padding:1px 7px;margin-left:2px}
+
+/* SIDEBAR */
+.sidebar{width:230px;min-width:160px;max-width:400px;flex-shrink:0;border-right:0.5px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative}
+.sidebar-resize{position:absolute;right:-4px;top:0;bottom:0;width:8px;cursor:col-resize;z-index:20;background:transparent}
+.sidebar-resize::after{content:'';position:absolute;right:3px;top:50%;transform:translateY(-50%);width:2px;height:40px;background:var(--border2);border-radius:2px;transition:background .15s,height .15s}
+.sidebar-resize:hover::after{background:var(--info-border);height:60px}
+.sidebar-resize.dragging::after{background:var(--info-border);height:80px}
+.sidebar-head{padding:10px 12px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:6px;flex-wrap:wrap}
+.sidebar-head span{font-size:12px;font-weight:500;color:var(--text2)}
+.sidebar-head-actions{display:flex;align-items:center;gap:4px}
+.sidebar-list{flex:1;overflow-y:scroll;overflow-x:hidden;padding:8px;min-height:0;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.sidebar-list::-webkit-scrollbar{width:5px}
+.sidebar-list::-webkit-scrollbar-track{background:transparent}
+.sidebar-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.sidebar-list::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+.sidebar-item{padding:7px 8px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text);user-select:none;position:relative}
+.sidebar-item:hover{background:var(--bg)}
+.sidebar-item.active{background:var(--bg);font-weight:500}
+.sidebar-item i.icon{font-size:15px;color:var(--text3);flex-shrink:0}
+.sidebar-item .item-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-count{font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 7px;border-radius:20px;flex-shrink:0}
+.item-del{display:none;padding:2px 5px;border-radius:4px;border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:13px;flex-shrink:0;line-height:1}
+.item-del:hover{color:var(--danger-text);background:var(--danger-bg)}
+.sidebar-item:hover .item-del{display:flex;align-items:center}
+.suite-cb{width:14px;height:14px;cursor:pointer;accent-color:var(--info-text);flex-shrink:0;display:none}
+.select-mode .suite-cb{display:block}
+.select-mode .item-del{display:none!important}
+.bulk-del-btn{font-size:11px;padding:3px 9px;border-radius:var(--r);border:0.5px solid var(--danger-text);background:var(--danger-bg);color:var(--danger-text);cursor:pointer;display:none;white-space:nowrap}
+.bulk-del-btn.show{display:inline-flex;align-items:center;gap:3px}
+.select-toggle{font-size:11px;padding:3px 8px;border-radius:var(--r);border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap}
+.select-toggle:hover{background:var(--bg)}
+
+/* MAIN CONTENT */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg)}
+.toolbar{padding:10px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--bg);flex-shrink:0}
+.toolbar input,.toolbar select{font-size:13px;padding:6px 10px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);outline:none}
+.toolbar input{flex:1;min-width:140px}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--info-border)}
+.tc-table{flex:1;overflow-y:auto}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead th{font-size:11px;font-weight:500;color:var(--text2);padding:9px 14px;text-align:left;border-bottom:0.5px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:1}
+tbody tr{border-bottom:0.5px solid var(--border);cursor:pointer}
+tbody tr:hover{background:var(--bg2)}
+tbody tr.sel-row{background:var(--info-bg)}
+td{padding:9px 14px;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+.tc-id{font-size:11px;color:var(--text3);font-family:monospace}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:10px;color:var(--text3);font-size:13px;padding:60px 20px;text-align:center}
+.empty i{font-size:36px}
+
+/* DETAIL PANEL */
+.detail-panel{width:320px;min-width:260px;max-width:70vw;flex-shrink:0;border-left:0.5px solid var(--border);display:flex;flex-direction:column;background:var(--bg);position:relative}
+.detail-panel.hidden{width:0;min-width:0;overflow:hidden;border-left:none}
+.dp-resize{position:absolute;left:-4px;top:0;bottom:0;width:8px;cursor:col-resize;z-index:20;background:transparent;border-radius:4px}
+.dp-resize::after{content:'';position:absolute;left:3px;top:50%;transform:translateY(-50%);width:2px;height:40px;background:var(--border2);border-radius:2px;transition:background .15s,height .15s}
+.dp-resize:hover::after{background:var(--info-border);height:60px}
+.dp-resize.dragging::after{background:var(--info-border);height:80px}
+.dp-head{padding:11px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dp-head-id{font-size:13px;font-weight:500;font-family:monospace;color:var(--text2)}
+.dp-body{padding:16px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:13px}
+.dp-footer{padding:11px 16px;border-top:0.5px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
+.type-grid{display:flex;flex-wrap:wrap;gap:6px}
+.type-chip{font-size:12px;padding:4px 13px;border-radius:20px;border:0.5px solid var(--border2);cursor:pointer;background:transparent;color:var(--text2);font-family:inherit}
+.type-chip:hover{background:var(--bg2)}
+.type-chip.sel.regression{background:#eeedfe;color:#3c3489;border-color:#afa9ec}
+.type-chip.sel.smoke{background:#e6f1fb;color:#0c447c;border-color:#85b7eb}
+.type-chip.sel.sanity{background:#fbeaf0;color:#72243e;border-color:#ed93b1}
+.type-chip.sel.exploratory{background:#faeeda;color:#633806;border-color:#ef9f27}
+.type-chip.sel.functional{background:#e1f5ee;color:#085041;border-color:#5dcaa5}
+.steps-wrap{display:flex;flex-direction:column;gap:6px}
+.step-row{display:flex;gap:6px;align-items:flex-start}
+.step-num{font-size:11px;color:var(--text3);min-width:16px;padding-top:9px;text-align:right;font-family:monospace}
+.step-inputs{flex:1;display:flex;flex-direction:column;gap:4px}
+.step-inputs textarea{font-size:12px;padding:6px 8px;min-height:38px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);resize:vertical;font-family:inherit;outline:none;width:100%}
+.step-inputs textarea:focus{border-color:var(--info-border)}
+.step-del{padding:3px 5px;border-radius:var(--r);border:0.5px solid transparent;background:transparent;cursor:pointer;color:var(--text3);font-size:13px;margin-top:3px;display:flex;align-items:center}
+.step-del:hover{color:var(--danger-text);background:var(--danger-bg)}
+
+/* TEST PLANS PAGE */
+.plans-layout{flex:1;display:flex;overflow:hidden;min-height:0}
+.plans-list-col{width:280px;flex-shrink:0;border-right:0.5px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;min-height:0}
+.plans-list-head{padding:12px 14px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.plans-list-head span{font-size:12px;font-weight:500;color:var(--text2)}
+.plans-list-body{flex:1;overflow-y:auto;padding:8px;min-height:0}
+.plan-card{padding:10px 12px;border-radius:var(--r);cursor:pointer;border:0.5px solid transparent;margin-bottom:4px;background:var(--bg)}
+.plan-card:hover{border-color:var(--border2)}
+.plan-card.active{border-color:var(--info-border);background:var(--info-bg)}
+.plan-card-name{font-size:13px;font-weight:500;margin-bottom:3px}
+.plan-card-meta{font-size:11px;color:var(--text3);display:flex;gap:8px}
+.plan-detail{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;background:var(--bg)}
+.plan-detail-head{padding:14px 18px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;flex-wrap:wrap;gap:8px}
+.plan-detail-title{font-size:15px;font-weight:500}
+.runs-list{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:0;align-items:stretch;align-content:flex-start}
+.run-card{border:0.5px solid var(--border2);border-radius:var(--rl);background:var(--bg);overflow:visible;flex-shrink:0}
+.run-card-head{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:8px;border-radius:var(--rl)}
+.run-card-head:hover{background:var(--bg2)}
+.run-name{font-size:13px;font-weight:500;flex:1}
+.run-meta{font-size:11px;color:var(--text3)}
+.run-progress{height:4px;background:var(--bg3);flex-shrink:0}
+.run-progress-bar{height:100%;display:flex}
+.run-progress-bar span{transition:width .3s}
+.run-body{display:none;border-top:0.5px solid var(--border);border-radius:0 0 var(--rl) var(--rl);overflow:hidden}
+.run-body.open{display:block}
+.run-tc-row{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+.run-tc-row:last-child{border-bottom:none}
+.run-tc-id{font-size:11px;color:var(--text3);font-family:monospace;flex-shrink:0;width:58px;padding-top:2px}
+.run-tc-title{font-size:13px;font-weight:500;margin-bottom:5px}
+.run-tc-meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px;align-items:center}
+.run-tc-field{font-size:11px;color:var(--text2);margin-bottom:3px;line-height:1.5}
+.run-tc-field strong{color:var(--text);font-weight:500}
+.run-tc-steps{margin-top:6px;border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden}
+.run-tc-steps-head{font-size:11px;font-weight:500;color:var(--text2);background:var(--bg2);padding:4px 10px;border-bottom:0.5px solid var(--border)}
+.run-tc-step-row{display:grid;grid-template-columns:24px 1fr 1fr;font-size:11px;border-bottom:0.5px solid var(--border);color:var(--text2)}
+.run-tc-step-row:last-child{border-bottom:none}
+.run-tc-step-row>div{padding:5px 8px;line-height:1.5}
+.run-tc-step-num{color:var(--text3);font-weight:500;border-right:0.5px solid var(--border);text-align:center;background:var(--bg2)}
+.run-status-sel{font-size:12px;padding:4px 8px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);outline:none;cursor:pointer}
+.run-status-sel:focus{border-color:var(--info-border)}
+.run-status-sel.Passed{background:#e1f5ee;color:#0f6e56;border-color:#5dcaa5}
+.run-status-sel.Failed{background:#fcebeb;color:#a32d2d;border-color:#f09595}
+.run-status-sel.Blocked{background:#faeeda;color:#854f0b;border-color:#ef9f27}
+.run-status-sel.Untested{background:var(--bg2);color:var(--text3)}
+.attach-btn{font-size:11px;padding:3px 8px;border-radius:var(--r);border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:4px;flex-shrink:0}
+.attach-btn:hover{background:var(--bg2)}
+.attach-thumb{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;width:100%}
+.attach-thumb-item{position:relative;display:inline-flex;cursor:pointer}
+.attach-thumb-item img,.attach-thumb-item .vid-thumb{width:48px;height:36px;object-fit:cover;border-radius:4px;border:0.5px solid var(--border2)}
+.attach-thumb-item .vid-thumb{background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text3)}
+.attach-thumb-item .del-attach{position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--danger-text);color:#fff;border:none;cursor:pointer;font-size:9px;display:none;align-items:center;justify-content:center}
+.attach-thumb-item:hover .del-attach{display:flex}
+.run-notes{width:100%;font-size:12px;padding:5px 8px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-family:inherit;resize:none;outline:none;margin-top:4px;min-height:32px}
+.run-notes:focus{border-color:var(--info-border)}
+
+/* ANALYTICS */
+.analytics-area{padding:20px;overflow-y:auto;flex:1}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px}
+.stat-card{background:var(--bg2);border-radius:var(--r);padding:12px 14px}
+.stat-card .s-label{font-size:11px;color:var(--text2);margin-bottom:4px}
+.stat-card .s-val{font-size:24px;font-weight:500}
+.s-val.passed{color:#0f6e56}.s-val.failed{color:#a32d2d}.s-val.blocked{color:#854f0b}.s-val.untested{color:var(--text3)}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.chart-box{background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--rl);padding:14px}
+.chart-box h3{font-size:13px;font-weight:500;margin-bottom:12px;color:var(--text2)}
+.bar-chart{display:flex;flex-direction:column;gap:6px}
+.bar-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.bar-label{width:80px;color:var(--text2);text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:16px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .4s}
+.bar-fill.passed{background:#1D9E75}
+.bar-fill.failed{background:#E24B4A}
+.bar-fill.blocked{background:#BA7517}
+.bar-fill.untested{background:#B4B2A9}
+.bar-val{width:28px;font-size:11px;color:var(--text3);text-align:right;flex-shrink:0}
+.donut-wrap{display:flex;align-items:center;gap:16px}
+.donut-wrap canvas{flex-shrink:0}
+.donut-legend{display:flex;flex-direction:column;gap:6px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.tc-result-table{width:100%;border-collapse:collapse;font-size:12px}
+.tc-result-table th{font-size:11px;font-weight:500;color:var(--text2);padding:6px 10px;text-align:left;border-bottom:0.5px solid var(--border);background:var(--bg2)}
+.tc-result-table td{padding:7px 10px;border-bottom:0.5px solid var(--border);vertical-align:middle}
+
+/* MODAL */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--bg);border-radius:var(--rl);border:0.5px solid var(--border2);width:540px;max-width:96vw;display:flex;flex-direction:column;max-height:90vh}
+.modal.wide{width:700px}
+.modal-head{padding:13px 18px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-head h2{font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
+.modal-body{padding:18px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px}
+.modal-foot{padding:11px 18px;border-top:0.5px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-shrink:0}
+#versionModal .modal{height:80vh}
+
+/* IMPORT SPECIFIC */
+.drop-zone{border:1.5px dashed var(--border2);border-radius:var(--rl);padding:28px 20px;text-align:center;cursor:pointer}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--info-border);background:var(--info-bg)}
+.drop-zone i{font-size:30px;color:var(--text3);display:block;margin-bottom:8px}
+.drop-zone p{font-size:13px;color:var(--text2);margin-bottom:4px}
+.drop-zone span{font-size:11px;color:var(--text3)}
+#fileInput{display:none}
+.col-map{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.col-map label{font-size:12px;color:var(--text2);display:flex;align-items:center}
+.col-map select{font-size:12px;padding:5px 8px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);outline:none}
+.import-summary{font-size:12px;color:var(--text2);background:var(--bg2);border-radius:var(--r);padding:9px 12px;display:flex;gap:14px;flex-wrap:wrap}
+.import-summary .ok{color:var(--success-text)}.import-summary .warn{color:var(--warn-text)}
+.preview-wrap{overflow-x:auto;border:0.5px solid var(--border);border-radius:var(--r)}
+.preview-wrap table{table-layout:auto;min-width:100%}
+.preview-wrap thead th{font-size:11px;padding:6px 10px;white-space:nowrap}
+.preview-wrap td{font-size:12px;padding:5px 10px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.step-hint{font-size:11px;color:var(--text3);margin-top:6px;line-height:1.6}
+
+/* LIGHTBOX */
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;align-items:center;justify-content:center}
+.lightbox.open{display:flex}
+.lightbox img,.lightbox video{max-width:92vw;max-height:88vh;border-radius:var(--r)}
+.lightbox-close{position:absolute;top:16px;right:20px;font-size:24px;color:#fff;cursor:pointer;background:none;border:none;line-height:1}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:var(--bg);font-size:13px;padding:9px 14px 9px 16px;border-radius:var(--r);opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999;display:flex;align-items:center;gap:10px}
+.toast.show{opacity:1;pointer-events:auto}
+.toast-close{background:none;border:none;color:var(--bg);cursor:pointer;font-size:16px;padding:0;line-height:1;opacity:0.7;flex-shrink:0}
+.toast-close:hover{opacity:1}
+
+/* TC SELECTOR in run creation */
+.tc-selector{border:0.5px solid var(--border2);border-radius:var(--r);max-height:220px;overflow-y:auto}
+.tc-sel-row{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:0.5px solid var(--border);font-size:13px;cursor:pointer}
+.tc-sel-row:last-child{border-bottom:none}
+.tc-sel-row:hover{background:var(--bg2)}
+.tc-sel-row input[type=checkbox]{accent-color:var(--info-text);cursor:pointer;flex-shrink:0}
+.tc-sel-id{font-size:11px;color:var(--text3);font-family:monospace;width:58px;flex-shrink:0}
+
+/* TOPBAR FIX */
+.topbar-right{display:flex;align-items:center;gap:6px;padding:8px 0;overflow-x:auto;flex-shrink:1;scrollbar-width:none}
+.topbar-right::-webkit-scrollbar{display:none}
+
+/* GOOGLE DRIVE DROPDOWN */
+.gdrive-sep{width:1px;background:var(--border);height:20px;margin:0 2px;flex-shrink:0}
+.gdrive-dd-wrap{position:relative;flex-shrink:0}
+.gdrive-dd-btn{font-size:12px;padding:6px 11px;border-radius:var(--r);border:0.5px solid #64b5f6;background:#e3f2fd;color:#0d47a1;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit}
+.gdrive-dd-btn:hover{opacity:.88}
+.gdrive-dd-btn .dot{width:7px;height:7px;border-radius:50%;background:#bbb;flex-shrink:0;transition:background .3s}
+.gdrive-dd-btn .dot.ok{background:#34a853}
+.gdrive-dd-menu{display:none;position:fixed;top:48px;right:12px;z-index:9000;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--rl);box-shadow:0 4px 24px rgba(0,0,0,.18);min-width:210px;overflow:hidden}
+.gdrive-dd-menu.open{display:block}
+.gdrive-dd-head{padding:10px 14px 8px;border-bottom:0.5px solid var(--border)}
+.gdrive-dd-head-title{font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.gdrive-dd-head-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.gdrive-dd-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;cursor:pointer;color:var(--text);border:none;background:transparent;width:100%;text-align:left;font-family:inherit}
+.gdrive-dd-item:hover{background:var(--bg2)}
+.gdrive-dd-item i{font-size:15px;color:var(--text3);flex-shrink:0}
+.gdrive-dd-item.load-c i{color:var(--info-text)}
+.gdrive-dd-item.save-c i{color:var(--success-text)}
+.gdrive-dd-sep{height:0.5px;background:var(--border);margin:3px 0}
+.gdrive-dd-user{display:flex;align-items:center;gap:8px;padding:8px 14px 10px;font-size:12px;color:var(--text2);border-top:0.5px solid var(--border)}
+.gdrive-dd-user img{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid var(--border2)}
+.gdrive-dd-user-info{flex:1;min-width:0}
+.gdrive-dd-user-name{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gdrive-dd-user-email{font-size:10px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gdrive-dd-signout{font-size:11px;color:var(--danger-text);background:transparent;border:none;cursor:pointer;padding:0;flex-shrink:0}
+.gdrive-dd-signout:hover{text-decoration:underline}
+
+/* DRIVE MODAL */
+.gdrive-modal-body{display:flex;flex-direction:column;gap:16px}
+.gdrive-file-list{border:0.5px solid var(--border2);border-radius:var(--r);max-height:240px;overflow-y:auto}
+.gdrive-file-row{display:flex;align-items:center;gap:10px;padding:9px 13px;border-bottom:0.5px solid var(--border);cursor:pointer;font-size:13px;transition:background .1s}
+.gdrive-file-row:last-child{border-bottom:none}
+.gdrive-file-row:hover{background:var(--bg2)}
+.gdrive-file-row.selected{background:var(--info-bg);border-left:2px solid var(--info-text)}
+.gdrive-file-icon{font-size:18px;color:var(--info-text);flex-shrink:0}
+.gdrive-file-info{flex:1;min-width:0}
+.gdrive-file-name{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gdrive-file-meta{font-size:11px;color:var(--text3);margin-top:1px}
+.gdrive-empty{padding:28px;text-align:center;color:var(--text3);font-size:13px;line-height:1.6}
+.gdrive-section-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.gdrive-spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--info-text);border-radius:50%;animation:gdspin .7s linear infinite;vertical-align:middle}
+@keyframes gdspin{to{transform:rotate(360deg)}}
+.gdrive-sign-in-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 0}
+.gdrive-sign-in-wrap p{font-size:13px;color:var(--text2);text-align:center;max-width:320px;line-height:1.6}
+.gdrive-user-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);padding:4px 0;margin-bottom:4px}
+.gdrive-user-row img{width:28px;height:28px;border-radius:50%;border:1px solid var(--border2)}
+.gdrive-info-box{font-size:11px;color:var(--text3);line-height:1.7;padding:8px 12px;background:var(--bg2);border-radius:var(--r)}
+.gdrive-folder-row{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--info-bg);border:0.5px solid var(--info-border);border-radius:var(--r);font-size:12px;color:var(--info-text)}
+</style>
+</head>
+<body>
+<!-- USERNAME SCREEN -->
+<div id="userScreen" class="user-screen">
+  <div class="user-screen-logo"><i class="ti ti-test-pipe"></i> Test Manager</div>
+  <div class="user-screen-card">
+    <h2>Welcome!</h2>
+    <p>Enter your name to get started.<br>This will be shown in version history.</p>
+    <div class="user-input-wrap">
+      <label for="userNameInput">Your name <span style="color:var(--danger-text)">*</span></label>
+      <input id="userNameInput" type="text" placeholder="e.g. John Smith" maxlength="60" autocomplete="name"
+        onkeydown="if(event.key==='Enter')continueToApp()">
+      <span class="user-err" id="userErr">Please enter your name to continue</span>
+    </div>
+    <button class="user-continue-btn" onclick="continueToApp()">Continue &rarr;</button>
+    <div class="user-welcome" id="userWelcomeNote" style="display:none">
+      Welcome back, <strong id="userWelcomeName"></strong>! Click continue to proceed.
+    </div>
+  </div>
+</div>
+
+<!-- TEAM PICKER SCREEN -->
+<div id="teamScreen" class="team-screen">
+  <div class="team-screen-logo"><i class="ti ti-test-pipe"></i> Test Manager</div>
+  <h2>Select a team to continue</h2>
+  <div class="team-grid" id="teamGrid"></div>
+</div>
+
+<div class="app-shell" id="appShell" style="display:none">
+
+<!-- TOP NAV -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo"><i class="ti ti-test-pipe"></i> Test Manager</div>
+    <button class="nav-tab active" onclick="switchTab('tc')" id="tab-tc"><i class="ti ti-layout-list"></i> Test Cases</button>
+    <button class="nav-tab" onclick="switchTab('plans')" id="tab-plans"><i class="ti ti-clipboard-list"></i> Test Plans</button>
+  </div>
+  <div class="topbar-right">
+    <span class="saved-badge" id="savedBadge"><i class="ti ti-check" style="font-size:12px"></i> Saved</span>
+    <button class="btn" id="userBtn" onclick="setUsername()" style="display:flex;align-items:center;gap:5px;border-color:var(--border2)">
+      <i class="ti ti-user" style="font-size:13px;color:var(--text2)"></i>
+      <span id="userDisplay" style="font-size:12px;color:var(--text2);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Set name</span>
+    </button>
+    <button class="team-badge" id="teamBadgeBtn" onclick="goToTeamScreen()">
+      <span class="team-dot" id="teamBadgeDot"></span>
+      <span id="teamBadgeName">Team</span>
+      <i class="ti ti-chevron-down" style="font-size:12px;color:var(--text3)"></i>
+    </button>
+    <button class="btn success" onclick="openImportModal()"><i class="ti ti-file-spreadsheet"></i> Import Excel</button>
+    <button class="btn" onclick="downloadTemplate()"><i class="ti ti-template"></i> Template</button>
+    <button class="btn" onclick="exportHTML()"><i class="ti ti-download"></i> Save HTML</button>
+    <button class="btn" onclick="exportJSON()"><i class="ti ti-file-export"></i> Export JSON</button>
+    <button class="btn" onclick="exportExcel()"><i class="ti ti-table-export"></i> Export Excel</button>
+    <button class="btn" onclick="openVersionHistory()"><i class="ti ti-history"></i> History</button>
+    <div class="gdrive-sep"></div>
+    <div class="gdrive-dd-wrap" id="gdriveDdWrap">
+      <button class="gdrive-dd-btn" onclick="toggleDriveDropdown(event)" id="gdriveDdBtn">
+        <i class="ti ti-brand-google-drive" style="font-size:15px"></i>
+        Drive
+        <span class="dot" id="gdriveDot"></span>
+        <i class="ti ti-chevron-down" style="font-size:11px;opacity:.7"></i>
+      </button>
+      <div class="gdrive-dd-menu" id="gdriveDdMenu">
+        <div class="gdrive-dd-head">
+          <div class="gdrive-dd-head-title"><i class="ti ti-brand-google-drive" style="color:#4285F4"></i> Google Drive</div>
+          <div class="gdrive-dd-head-sub" id="gdriveDdSub">Not signed in</div>
+        </div>
+        <button class="gdrive-dd-item load-c" onclick="closeDriveDropdown();openDriveModal('load')">
+          <i class="ti ti-cloud-download"></i> Load from Drive
+        </button>
+        <button class="gdrive-dd-item save-c" onclick="closeDriveDropdown();openDriveModal('save')">
+          <i class="ti ti-cloud-upload"></i> Save to Drive
+        </button>
+        <div class="gdrive-dd-sep"></div>
+        <div class="gdrive-dd-user" id="gdriveDdUser" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ TEST CASES PAGE ═══════ -->
+<div class="page active" id="page-tc" style="flex:1;overflow:hidden;height:0">
+  <div class="sidebar" id="sidebarPanel">
+    <div class="sidebar-resize" id="sidebarResizeHandle"></div>
+    <div class="sidebar-head">
+      <span>Test suites</span>
+      <div class="sidebar-head-actions">
+        <button class="bulk-del-btn" id="bulkDelBtn" onclick="bulkDeleteSuites()"><i class="ti ti-trash"></i> <span id="bulkDelCount">0</span></button>
+        <button class="select-toggle" id="selectToggleBtn" onclick="toggleSelectMode()">Select</button>
+        <button class="btn sm" onclick="addSuite()" aria-label="Add suite"><i class="ti ti-plus"></i></button>
+      </div>
+    </div>
+    <div class="sidebar-list" id="suiteList"></div>
+  </div>
+  <div class="main">
+    <div class="toolbar">
+      <input type="text" id="searchBox" placeholder="Search by ID or title…" oninput="renderTCTable()">
+      <div class="multi-sel-wrap" id="typeFilterWrap">
+        <button class="multi-sel-btn" id="typeFilterBtn" onclick="toggleTypeDropdown(event)">
+          <span id="typeFilterLabel">All types</span>
+          <i class="ti ti-chevron-down" style="font-size:12px;color:var(--text3)"></i>
+        </button>
+        <div class="multi-sel-drop" id="typeFilterDrop">
+          <div class="multi-sel-opts" id="typeFilterOpts"></div>
+          <div class="multi-sel-foot">
+            <button class="btn sm" onclick="clearTypeFilter()">Clear</button>
+          </div>
+        </div>
+      </div>
+      <select id="filterPriority" onchange="renderTCTable()">
+        <option value="">All priorities</option>
+        <option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
+      </select>
+      <select id="filterSprint" onchange="renderTCTable()">
+        <option value="">All sprints</option>
+      </select>
+      <button class="btn primary" onclick="newTC()"><i class="ti ti-plus"></i> Add test case</button>
+    </div>
+    <div class="tc-table" id="tcTable"></div>
+  </div>
+  <div class="detail-panel hidden" id="tcDetailPanel">
+    <div class="dp-resize" id="dpResizeHandle" title="Drag to resize"></div>
+    <div class="dp-head">
+      <span class="dp-head-id" id="dpId">—</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn danger-soft sm" onclick="deleteTC()"><i class="ti ti-trash"></i></button>
+        <button class="btn sm" onclick="closeDetail()"><i class="ti ti-x"></i></button>
+      </div>
+    </div>
+    <div class="dp-body" id="dpBody"></div>
+    <div class="dp-footer">
+      <button class="btn" onclick="closeDetail()">Cancel</button>
+      <button class="btn primary" onclick="saveTC()"><i class="ti ti-device-floppy"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ TEST PLANS PAGE ═══════ -->
+<div class="page" id="page-plans" style="flex:1;overflow:hidden;height:0">
+  <div class="plans-layout">
+    <div class="plans-list-col">
+      <div class="plans-list-head">
+        <span>Test plans</span>
+        <button class="btn sm" onclick="openNewPlanModal()"><i class="ti ti-plus"></i></button>
+      </div>
+      <div class="plans-list-body" id="plansList"></div>
+    </div>
+    <div class="plan-detail" id="planDetail">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text3);font-size:13px">
+        <i class="ti ti-clipboard-list" style="font-size:36px"></i>
+        <span>Select or create a test plan</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end app-shell -->
+
+</div><!-- end appShell -->
+
+<!-- ── MODALS ── -->
+
+<!-- TC Detail Modal (used for new TC) -->
+
+<!-- New Plan Modal -->
+<div class="modal-backdrop" id="newPlanModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-head"><h2><i class="ti ti-clipboard-list"></i> New test plan</h2><button class="btn sm" onclick="document.getElementById('newPlanModal').classList.remove('open')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div class="field"><label>Plan name *</label><input id="np-name" placeholder="e.g. Sprint 12 Regression"></div>
+      <div class="field"><label>Description</label><textarea id="np-desc" placeholder="What this plan covers…"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="document.getElementById('newPlanModal').classList.remove('open')">Cancel</button>
+      <button class="btn primary" onclick="createPlan()"><i class="ti ti-check"></i> Create plan</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Run Modal -->
+<div class="modal-backdrop" id="newRunModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal wide">
+    <div class="modal-head"><h2><i class="ti ti-player-play"></i> New test run</h2><button class="btn sm" onclick="document.getElementById('newRunModal').classList.remove('open')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div class="row2">
+        <div class="field"><label>Run name *</label><input id="nr-name" placeholder="e.g. Smoke run — 09 Jun"></div>
+        <div class="field"><label>Sprint / milestone</label><input id="nr-sprint" placeholder="e.g. Sprint 12"></div>
+      </div>
+      <div class="field">
+        <label>Select test cases</label>
+        <div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+          <input type="text" id="nr-search" placeholder="Filter…" oninput="renderTCSelector()" style="flex:1;min-width:120px;font-size:12px;padding:5px 8px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);outline:none">
+          <div class="multi-sel-wrap" id="nrSuiteWrap">
+            <button class="multi-sel-btn" id="nrSuiteBtn" onclick="toggleNrMultiDrop(event,'nrSuiteDrop','initNrSuiteFilter')">
+              <span id="nrSuiteLabel">All suites</span>
+              <i class="ti ti-chevron-down" style="font-size:12px;color:var(--text3)"></i>
+            </button>
+            <div class="multi-sel-drop" id="nrSuiteDrop">
+              <div class="multi-sel-opts" id="nrSuiteOpts"></div>
+              <div class="multi-sel-foot"><button class="btn sm" onclick="clearNrFilter('suite')">Clear</button></div>
+            </div>
+          </div>
+          <div class="multi-sel-wrap" id="nrPriorWrap">
+            <button class="multi-sel-btn" id="nrPriorBtn" onclick="toggleNrMultiDrop(event,'nrPriorDrop','initNrPriorFilter')">
+              <span id="nrPriorLabel">All priorities</span>
+              <i class="ti ti-chevron-down" style="font-size:12px;color:var(--text3)"></i>
+            </button>
+            <div class="multi-sel-drop" id="nrPriorDrop">
+              <div class="multi-sel-opts" id="nrPriorOpts"></div>
+              <div class="multi-sel-foot"><button class="btn sm" onclick="clearNrFilter('priority')">Clear</button></div>
+            </div>
+          </div>
+          <select id="nr-sprint-filter" onchange="renderTCSelector()" style="font-size:12px;padding:5px 8px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);outline:none">
+            <option value="">All sprints</option>
+          </select>
+          <div class="multi-sel-wrap" id="nrTypeWrap">
+            <button class="multi-sel-btn" id="nrTypeBtn" onclick="toggleNrTypeDropdown(event)">
+              <span id="nrTypeLabel">All types</span>
+              <i class="ti ti-chevron-down" style="font-size:12px;color:var(--text3)"></i>
+            </button>
+            <div class="multi-sel-drop" id="nrTypeDrop">
+              <div class="multi-sel-opts" id="nrTypeOpts"></div>
+              <div class="multi-sel-foot">
+                <button class="btn sm" onclick="clearNrTypeFilter()">Clear</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn sm" onclick="selectAllTC(true)">All</button>
+          <button class="btn sm" onclick="selectAllTC(false)">None</button>
+        </div>
+        <div class="tc-selector" id="tcSelector"></div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px" id="selCount">0 selected</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="document.getElementById('newRunModal').classList.remove('open')">Cancel</button>
+      <button class="btn primary" onclick="createRun()"><i class="ti ti-check"></i> Create run</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-backdrop" id="importModal" onclick="if(event.target===this)closeImportModal()">
+  <div class="modal wide">
+    <div class="modal-head"><h2><i class="ti ti-file-spreadsheet" style="color:var(--success-text)"></i> Import from Excel</h2><button class="btn sm" onclick="closeImportModal()"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body" id="importModalBody">
+      <div id="imp-step1">
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+          <i class="ti ti-cloud-upload"></i>
+          <p>Drop your Excel file here, or click to browse</p>
+          <span>Supports .xlsx and .xls</span>
+        </div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileSelect(event)">
+        <div class="step-hint">Columns auto-detected. Required: <strong>Title</strong>. Steps use pipe separator: <code>Step 1 | Step 2</code></div>
+      </div>
+      <div id="imp-step2" style="display:none">
+        <div class="section-label">Column mapping</div>
+        <div class="col-map" id="colMap" style="margin-top:8px"></div>
+        <div class="section-label" style="margin-top:12px">Preview <span id="previewCount" style="font-weight:400;color:var(--text3)"></span></div>
+        <div class="preview-wrap" id="previewWrap" style="margin-top:6px"></div>
+        <div class="import-summary" id="importSummary" style="margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="modal-foot" style="justify-content:space-between">
+      <select id="importMode" style="font-size:12px;padding:5px 8px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);outline:none">
+        <option value="append">Add as new</option>
+        <option value="upsert">Update if ID matches</option>
+        <option value="replace">Replace all</option>
+      </select>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="closeImportModal()">Cancel</button>
+        <button class="btn primary" id="importBtn" onclick="doImport()" disabled><i class="ti ti-check"></i> Import</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="document.getElementById('lightbox').classList.remove('open')">
+  <button class="lightbox-close" onclick="document.getElementById('lightbox').classList.remove('open')"><i class="ti ti-x"></i></button>
+  <div id="lightboxContent"></div>
+</div>
+
+<!-- VERSION HISTORY MODAL -->
+<div class="modal-backdrop" id="versionModal" onclick="if(event.target===this)closeVersionModal()">
+  <div class="modal" style="width:680px;max-width:96vw">
+    <div class="modal-head">
+      <h2><i class="ti ti-history" style="color:var(--info-text)"></i> Version history</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:11px;color:var(--text3)" id="versionStorageInfo"></span>
+        <button class="btn danger-soft sm" onclick="clearAllVersions()"><i class="ti ti-trash"></i> Clear all</button>
+        <button class="btn sm" onclick="closeVersionModal()"><i class="ti ti-x"></i></button>
+      </div>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;min-height:0">
+      <!-- Version list -->
+      <div style="width:220px;flex-shrink:0;border-right:0.5px solid var(--border);display:flex;flex-direction:column;background:var(--bg2)">
+        <div style="padding:8px;font-size:11px;font-weight:500;color:var(--text2);border-bottom:0.5px solid var(--border);flex-shrink:0">Saved snapshots</div>
+        <div id="versionList" style="flex:1;overflow-y:auto;padding:6px"></div>
+      </div>
+      <!-- Version detail -->
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0">
+        <div id="versionDetail" style="flex:1;overflow-y:auto;padding:16px;font-size:13px;color:var(--text2)">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--text3)">
+            <i class="ti ti-history" style="font-size:32px"></i>
+            <span>Select a version to preview</span>
+          </div>
+        </div>
+        <div id="versionActions" style="padding:10px 16px;border-top:0.5px solid var(--border);display:none;gap:8px;justify-content:flex-end">
+          <button class="btn sm" onclick="downloadVersion()"><i class="ti ti-download"></i> Download as JSON</button>
+          <button class="btn primary sm" onclick="restoreVersion()"><i class="ti ti-restore"></i> Restore this version</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-msg"></span>
+  <button class="toast-close" onclick="dismissToast()" aria-label="Close">&#x2715;</button>
+</div>
+
+<script>
+const STORAGE_KEY='tcm_v2';
+const DEL_KEY='tcm_deleted_v1'; // tracks IDs explicitly deleted so stale localStorage can't resurrect them
+
+// In-memory deletion log — merged from localStorage + INJECTED_DELETED on load
+let deletedIds=new Set();
+
+function loadDeletedIds(){
+  let local=new Set();
+  let injected=new Set();
+  try{const r=localStorage.getItem(DEL_KEY);if(r)JSON.parse(r).forEach(id=>local.add(id));}catch(e){}
+  try{if(typeof INJECTED_DELETED!=='undefined')INJECTED_DELETED.forEach(id=>injected.add(id));}catch(e){}
+  return new Set([...local,...injected]);
+}
+
+function saveDeletedIds(){
+  try{localStorage.setItem(DEL_KEY,JSON.stringify([...deletedIds]));}catch(e){}
+}
+
+function markDeleted(...ids){
+  ids.forEach(id=>deletedIds.add(id));
+  saveDeletedIds();
+}
+const TC_TYPES=['smoke','sanity','regression','functional','exploratory'];
+const PRIORITIES=['high','medium','low'];
+const RUN_STATUSES=['Untested','Passed','Failed','Blocked'];
+
+const DEFAULT={
+  teams:[
+    {id:'t1',name:'Frontend',color:'#378ADD',icon:'ti-layout-2'},
+    {id:'t2',name:'Backend',color:'#1D9E75',icon:'ti-server'},
+    {id:'t3',name:'Mobile',color:'#D85A30',icon:'ti-device-mobile'}
+  ],
+  suites:[
+    {id:'s1',name:'Authentication',teamId:'t1'},
+    {id:'s2',name:'Product search',teamId:'t1'},
+    {id:'s3',name:'Checkout flow',teamId:'t2'},
+    {id:'s4',name:'API endpoints',teamId:'t2'},
+    {id:'s5',name:'iOS Login',teamId:'t3'}
+  ],
+  testcases:[
+    {id:'TC-001',suiteId:'s1',teamId:'t1',sprint:'Sprint 1',title:'Login with valid credentials',type:'smoke',priority:'high',preconditions:'User account exists',steps:[{action:'Navigate to login page',expected:'Login page shown'},{action:'Enter valid credentials and click Login',expected:'Redirected to dashboard'}],tags:['@smoke']},
+    {id:'TC-002',suiteId:'s1',teamId:'t1',sprint:'Sprint 1',title:'Login with invalid password',type:'regression',priority:'high',preconditions:'User account exists',steps:[{action:'Navigate to login page',expected:'Login page shown'},{action:'Enter wrong password',expected:'Error message shown'}],tags:['@regression']},
+    {id:'TC-003',suiteId:'s2',teamId:'t1',sprint:'Sprint 2',title:'Search by product name',type:'functional',priority:'high',preconditions:'Products exist',steps:[{action:'Type keyword in search',expected:'Results shown'}],tags:[]},
+    {id:'TC-004',suiteId:'s3',teamId:'t2',sprint:'Sprint 1',title:'Checkout API returns 200',type:'smoke',priority:'high',preconditions:'Cart has items',steps:[{action:'POST /checkout',expected:'200 OK response'}],tags:[]},
+    {id:'TC-005',suiteId:'s4',teamId:'t2',sprint:'Sprint 2',title:'Auth token expiry',type:'regression',priority:'medium',preconditions:'Valid token exists',steps:[{action:'Wait for token to expire',expected:'401 returned'}],tags:[]},
+    {id:'TC-006',suiteId:'s5',teamId:'t3',sprint:'Sprint 1',title:'iOS login with biometrics',type:'smoke',priority:'high',preconditions:'Device has Face ID',steps:[{action:'Tap login with Face ID',expected:'User authenticated'}],tags:[]}
+  ],
+  plans:[],
+  counter:7,
+  planCounter:1,
+  runCounter:1,
+  teamCounter:4
+};
+
+function loadData(){
+  // Load deletion log first — this is the source of truth for what was intentionally removed
+  deletedIds=loadDeletedIds();
+
+  let local=null, injected=null;
+
+  // 1. Try localStorage
+  try{const r=localStorage.getItem(STORAGE_KEY);if(r)local=JSON.parse(r);}catch(e){}
+
+  // 2. Try injected (baked-in from Save HTML)
+  try{if(typeof INJECTED!=='undefined'&&INJECTED)injected=JSON.parse(JSON.stringify(INJECTED));}catch(e){}
+
+  // Helper: strip anything that was explicitly deleted
+  function applyDeletions(data){
+    if(!data) return data;
+    data.testcases=(data.testcases||[]).filter(t=>!deletedIds.has(t.id));
+    data.suites=(data.suites||[]).filter(s=>!deletedIds.has(s.id));
+    data.teams=(data.teams||[]).filter(t=>!deletedIds.has(t.id));
+    return data;
+  }
+  if(local)    local=applyDeletions(local);
+  if(injected) injected=applyDeletions(injected);
+
+  // 3. If both exist — merge: injected is the shared base, local adds this user's new work
+  if(local && injected){
+    const merged=JSON.parse(JSON.stringify(injected));
+    const existingIds=new Set(merged.testcases.map(t=>t.id));
+    (local.testcases||[]).forEach(t=>{
+      if(deletedIds.has(t.id)) return; // never resurface deleted TCs
+      if(!existingIds.has(t.id)){merged.testcases.push(t);}
+      else{const idx=merged.testcases.findIndex(x=>x.id===t.id);if(idx>=0)merged.testcases[idx]=t;}
+    });
+    const existingSuiteIds=new Set(merged.suites.map(s=>s.id));
+    (local.suites||[]).forEach(s=>{if(!deletedIds.has(s.id)&&!existingSuiteIds.has(s.id))merged.suites.push(s);});
+    const existingTeamIds=new Set(merged.teams.map(t=>t.id));
+    (local.teams||[]).forEach(t=>{if(!deletedIds.has(t.id)&&!existingTeamIds.has(t.id))merged.teams.push(t);});
+    merged.counter=Math.max(merged.counter||1, local.counter||1);
+    merged.planCounter=Math.max(merged.planCounter||1, local.planCounter||1);
+    merged.runCounter=Math.max(merged.runCounter||1, local.runCounter||1);
+    merged.teamCounter=Math.max(merged.teamCounter||1, local.teamCounter||1);
+    return merged;
+  }
+
+  if(local)    return local;
+  if(injected) return injected;
+  return JSON.parse(JSON.stringify(DEFAULT));
+}
+function cleanData(){
+  // Only remove TCs whose teamId or suiteId belonged to something that
+  // was explicitly deleted — identified by not existing in current arrays.
+  // We do NOT filter by title/content so partial edits are never lost.
+  const validTeamIds=new Set(teams.map(t=>t.id));
+  const validSuiteIds=new Set(suites.map(s=>s.id));
+
+  // Keep a TC if:
+  //  - it has no teamId (legacy data) OR its team still exists
+  //  - AND it has no suiteId (legacy) OR its suite still exists
+  testcases=testcases.filter(t=>{
+    if(!t.id) return false; // corrupt record
+    const teamOk=!t.teamId || validTeamIds.has(t.teamId);
+    const suiteOk=!t.suiteId || validSuiteIds.has(t.suiteId);
+    return teamOk && suiteOk;
+  });
+
+  // Remove orphaned suites whose team was deleted
+  suites=suites.filter(s=>!s.teamId || validTeamIds.has(s.teamId));
+
+  // Clean up run cases pointing to deleted test cases
+  const validTCIds=new Set(testcases.map(t=>t.id));
+  plans.forEach(p=>{
+    (p.runs||[]).forEach(r=>{
+      r.cases=(r.cases||[]).filter(c=>c.tcId && validTCIds.has(c.tcId));
+    });
+  });
+}
+// ── Session change log (accumulated until Save HTML) ──
+let _sessionChanges = [];
+
+function logChange(desc){
+  if(!desc) return;
+  // Avoid duplicate consecutive entries
+  if(_sessionChanges.length && _sessionChanges[_sessionChanges.length-1] === desc) return;
+  _sessionChanges.push(desc);
+}
+
+let _savingVersion = false;
+
+function saveData(changeDesc){
+  cleanData();
+  if(changeDesc) logChange(changeDesc);
+  // Always write full current state to localStorage
+  localStorage.setItem(STORAGE_KEY,JSON.stringify({teams,suites,testcases,plans,counter,planCounter,runCounter,teamCounter}));
+  const b=document.getElementById('savedBadge');
+  b.classList.add('show');clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('show'),2000);
+}
+
+let {teams,suites,testcases,plans,counter,planCounter,runCounter,teamCounter}=loadData();
+// Ensure teamCounter exists for old data
+if(!teamCounter)teamCounter=(teams||[]).length+1;
+if(!teams)teams=JSON.parse(JSON.stringify(DEFAULT.teams));
+let activeTeamId=null,activeSuiteId=null,selectedTC=null,editingTC=null,activePlanId=null;
+let selectedTypes=new Set();
+
+/* ══ MULTI-SELECT TYPE FILTER ══ */
+function initTypeFilter(){
+  const opts=document.getElementById('typeFilterOpts');
+  opts.innerHTML='';
+  TC_TYPES.forEach(t=>{
+    const row=document.createElement('div');row.className='multi-sel-opt';
+    row.innerHTML=`<input type="checkbox" id="tf-${t}" value="${t}" ${selectedTypes.has(t)?'checked':''}><label for="tf-${t}" style="cursor:pointer;flex:1">${t.charAt(0).toUpperCase()+t.slice(1)}</label><span class="badge ${t}" style="font-size:10px;padding:1px 7px">${t.slice(0,3)}</span>`;
+    row.querySelector('input').onchange=e=>{
+      if(e.target.checked)selectedTypes.add(t);else selectedTypes.delete(t);
+      updateTypeFilterLabel();renderTCTable();
+    };
+    row.onclick=e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='LABEL')return;const cb=row.querySelector('input');cb.checked=!cb.checked;cb.onchange({target:cb});};
+    opts.appendChild(row);
+  });
+}
+function updateTypeFilterLabel(){
+  const btn=document.getElementById('typeFilterBtn');
+  const label=document.getElementById('typeFilterLabel');
+  if(!selectedTypes.size){label.textContent='All types';btn.classList.remove('has-sel');return;}
+  const names=[...selectedTypes].map(t=>t.charAt(0).toUpperCase()+t.slice(1));
+  label.innerHTML=selectedTypes.size===1?names[0]:`${names[0]} <span class="type-count-pill">+${selectedTypes.size-1}</span>`;
+  btn.classList.add('has-sel');
+}
+function toggleTypeDropdown(e){
+  e.stopPropagation();
+  const drop=document.getElementById('typeFilterDrop');
+  const isOpen=drop.classList.contains('open');
+  closeAllDropdowns();
+  if(!isOpen){initTypeFilter();drop.classList.add('open');}
+}
+function clearTypeFilter(){
+  selectedTypes.clear();
+  updateTypeFilterLabel();
+  initTypeFilter();
+  renderTCTable();
+}
+function closeAllDropdowns(){
+  document.querySelectorAll('.multi-sel-drop').forEach(d=>d.classList.remove('open'));
+  const dm=document.getElementById('gdriveDdMenu');
+  if(dm) dm.classList.remove('open');
+}
+document.addEventListener('click',closeAllDropdowns);
+
+/* ══ TEAM COLORS ══ */
+const TEAM_COLORS=['#378ADD','#1D9E75','#D85A30','#534AB7','#D4537E','#BA7517','#888780'];
+const TEAM_ICONS=['ti-layout-2','ti-server','ti-device-mobile','ti-code','ti-database','ti-cloud','ti-users'];
+
+/* ══ TEAM PICKER ══ */
+function renderTeamScreen(){
+  document.getElementById('userScreen').classList.remove('active');
+  document.getElementById('teamScreen').style.display='flex';
+  document.getElementById('appShell').style.display='none';
+  const name=getUsername();
+  // Update team screen subtitle with username
+  const h2=document.querySelector('#teamScreen h2');
+  if(h2) h2.textContent=name?'Hello, '+name+'! Select a team to continue.':'Select a team to continue';
+  const grid=document.getElementById('teamGrid');
+  grid.innerHTML='';
+  teams.forEach(t=>{
+    const card=document.createElement('div');
+    card.className='team-card';
+    const tcCount=testcases.filter(x=>x.teamId===t.id).length;
+    card.innerHTML=`
+      <div class="team-card-icon" style="background:${t.color}22;color:${t.color}"><i class="ti ${t.icon||'ti-users'}"></i></div>
+      <div class="team-card-name">${esc(t.name)}</div>
+      <div class="team-card-count">${tcCount} test case${tcCount!==1?'s':''}</div>
+      <button class="team-card-del" onclick="event.stopPropagation();deleteTeam('${t.id}')" title="Delete team"><i class="ti ti-trash"></i></button>`;
+    card.onclick=()=>selectTeam(t.id);
+    grid.appendChild(card);
+  });
+  const add=document.createElement('div');
+  add.className='team-card add-card';
+  add.innerHTML=`<div class="team-card-icon" style="background:var(--bg3);color:var(--text3)"><i class="ti ti-plus"></i></div><div class="team-card-name">New team</div>`;
+  add.onclick=()=>createTeam();
+  grid.appendChild(add);
+}
+
+function selectTeam(tid){
+  activeTeamId=tid;
+  activeSuiteId=null;selectedTC=null;editingTC=null;activePlanId=null;
+  const team=teams.find(t=>t.id===tid);
+  document.getElementById('teamBadgeName').textContent=team.name;
+  document.getElementById('teamBadgeDot').style.background=team.color;
+  document.getElementById('teamScreen').style.display='none';
+  document.getElementById('appShell').style.display='flex';
+  switchTab('tc');
+  renderSidebar();renderTCTable();
+}
+
+function goToTeamScreen(){
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('userScreen').classList.remove('active');
+  renderTeamScreen();
+}
+
+function createTeam(){
+  const name=prompt('Team name:');
+  if(!name||!name.trim())return;
+  const color=TEAM_COLORS[(teams.length)%TEAM_COLORS.length];
+  const icon=TEAM_ICONS[(teams.length)%TEAM_ICONS.length];
+  const id='t'+Date.now();
+  teams.push({id,name:name.trim(),color,icon});
+  teamCounter++;
+  saveData(`Team created: ${name.trim()}`);
+  renderTeamScreen();
+  showToast(`Team "${name.trim()}" created`);
+}
+
+function deleteTeam(tid){
+  const t=teams.find(x=>x.id===tid);if(!t)return;
+  const n=testcases.filter(x=>x.teamId===tid).length;
+  if(!confirm(`Delete team "${t.name}"${n?` and its ${n} test case(s)`:''}?`))return;
+  const teamTCIds=testcases.filter(x=>x.teamId===tid).map(x=>x.id);
+  const teamSuiteIds=suites.filter(x=>x.teamId===tid).map(x=>x.id);
+  markDeleted(tid,...teamTCIds,...teamSuiteIds);
+  teams=teams.filter(x=>x.id!==tid);
+  suites=suites.filter(x=>x.teamId!==tid);
+  testcases=testcases.filter(x=>x.teamId!==tid);
+  plans=plans.filter(x=>x.teamId!==tid);
+  saveData(`Team deleted: ${t.name}`);renderTeamScreen();
+  showToast(`Team "${t.name}" deleted`);
+}
+
+/* ══ TAB ══ */
+function switchTab(t){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+t).classList.add('active');
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='plans'){renderPlansList();if(activePlanId)renderPlanDetail(activePlanId);}
+}
+
+/* ══ SUITES ══ */
+let suiteSelectMode=false;
+let selectedSuiteIds=new Set();
+
+function teamSuites(){return suites.filter(s=>s.teamId===activeTeamId);}
+function suiteCount(sid){return testcases.filter(t=>t.suiteId===sid&&t.teamId===activeTeamId).length;}
+
+function toggleSelectMode(){
+  suiteSelectMode=!suiteSelectMode;
+  selectedSuiteIds.clear();
+  const btn=document.getElementById('selectToggleBtn');
+  const list=document.getElementById('suiteList');
+  if(suiteSelectMode){
+    btn.textContent='Cancel';
+    btn.style.color='var(--danger-text)';
+    list.classList.add('select-mode');
+  } else {
+    btn.textContent='Select';
+    btn.style.color='';
+    list.classList.remove('select-mode');
+  }
+  updateBulkDelBtn();
+  renderSidebar();
+}
+
+function updateBulkDelBtn(){
+  const btn=document.getElementById('bulkDelBtn');
+  const cnt=document.getElementById('bulkDelCount');
+  if(selectedSuiteIds.size>0){
+    btn.classList.add('show');
+    cnt.textContent=selectedSuiteIds.size;
+  } else {
+    btn.classList.remove('show');
+  }
+}
+
+function bulkDeleteSuites(){
+  if(!selectedSuiteIds.size) return;
+  const names=suites.filter(s=>selectedSuiteIds.has(s.id)).map(s=>s.name);
+  const totalTCs=testcases.filter(t=>selectedSuiteIds.has(t.suiteId)&&t.teamId===activeTeamId).length;
+  const msg=`Delete ${selectedSuiteIds.size} suite(s): ${names.join(', ')}?`+(totalTCs?`\n\nThis will also delete ${totalTCs} test case(s) inside them.`:'');
+  if(!confirm(msg)) return;
+  // Mark all deleted suite IDs and their TC IDs
+  const allDeletedTCIds=testcases.filter(t=>selectedSuiteIds.has(t.suiteId)).map(t=>t.id);
+  markDeleted(...selectedSuiteIds,...allDeletedTCIds);
+  suites=suites.filter(s=>!selectedSuiteIds.has(s.id));
+  testcases=testcases.filter(t=>!selectedSuiteIds.has(t.suiteId));
+  if(selectedSuiteIds.has(activeSuiteId)){activeSuiteId=null;closeDetail();}
+  selectedSuiteIds.clear();
+  suiteSelectMode=false;
+  const btn=document.getElementById('selectToggleBtn');
+  btn.textContent='Select';btn.style.color='';
+  document.getElementById('suiteList').classList.remove('select-mode');
+  updateBulkDelBtn();
+  saveData(`Bulk deleted ${names.length} suite(s): ${names.join(', ')}`);renderSidebar();renderTCTable();
+  showToast(`${names.length} suite(s) deleted`);
+}
+
+function renderSidebar(){
+  const el=document.getElementById('suiteList');el.innerHTML='';
+  if(suiteSelectMode) el.classList.add('select-mode');
+  else el.classList.remove('select-mode');
+
+  const teamTCs=testcases.filter(t=>t.teamId===activeTeamId);
+
+  // All tests row
+  const all=document.createElement('div');
+  all.className='sidebar-item'+(activeSuiteId===null?' active':'');
+  all.innerHTML=`<i class="ti ti-layout-list icon"></i><span class="item-name">All tests</span><span class="s-count">${teamTCs.length}</span><button class="item-del" title="Delete all test cases"><i class="ti ti-trash"></i></button>`;
+  all.onclick=()=>{if(suiteSelectMode)return;activeSuiteId=null;selectedTC=null;closeDetail();renderSidebar();renderTCTable();};
+  all.querySelector('.item-del').onclick=e=>{
+    e.stopPropagation();
+    if(!teamTCs.length){showToast('No test cases to delete');return;}
+    if(!confirm(`Delete all ${teamTCs.length} test case(s) in this team?\n\nThis cannot be undone.`))return;
+    const allIds=teamTCs.map(t=>t.id);
+    markDeleted(...allIds);
+    testcases=testcases.filter(t=>t.teamId!==activeTeamId);
+    selectedTC=null;closeDetail();
+    saveData('Deleted all test cases in team');renderSidebar();renderTCTable();showToast('All test cases deleted');
+  };
+  el.appendChild(all);
+
+  teamSuites().forEach(s=>{
+    const checked=selectedSuiteIds.has(s.id);
+    const d=document.createElement('div');
+    d.className='sidebar-item'+(activeSuiteId===s.id?' active':'');
+    d.innerHTML=`
+      <input type="checkbox" class="suite-cb" ${checked?'checked':''} onclick="event.stopPropagation();toggleSuiteSelect('${s.id}',this.checked)">
+      <i class="ti ti-folder icon"></i>
+      <span class="item-name">${esc(s.name)}</span>
+      <span class="s-count">${suiteCount(s.id)}</span>
+      <button class="item-del" title="Delete suite"><i class="ti ti-trash"></i></button>`;
+    d.onclick=e=>{
+      if(e.target.closest('.item-del'))return;
+      if(e.target.closest('.suite-cb'))return;
+      if(suiteSelectMode){toggleSuiteSelect(s.id,!selectedSuiteIds.has(s.id));return;}
+      activeSuiteId=s.id;selectedTC=null;closeDetail();renderSidebar();renderTCTable();
+    };
+    d.querySelector('.item-del').onclick=e=>{e.stopPropagation();deleteSuite(s.id);};
+    el.appendChild(d);
+  });
+
+  // refresh sprint filter
+  const sprints=[...new Set(teamTCs.map(t=>t.sprint||'').filter(Boolean))].sort();
+  const sf=document.getElementById('filterSprint');
+  const cur=sf.value;sf.innerHTML='<option value="">All sprints</option>';
+  sprints.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;if(s===cur)o.selected=true;sf.appendChild(o);});
+}
+
+function toggleSuiteSelect(sid, checked){
+  if(checked) selectedSuiteIds.add(sid);
+  else selectedSuiteIds.delete(sid);
+  updateBulkDelBtn();
+  // update just the checkbox without full re-render
+  const cb=document.querySelector(`.suite-cb[onclick*="${sid}"]`);
+  if(cb) cb.checked=checked;
+}
+function addSuite(){
+  const name=prompt('Suite name:');if(!name||!name.trim())return;
+  suites.push({id:'s'+Date.now(),name:name.trim(),teamId:activeTeamId});
+  saveData(`Suite created: ${name.trim()}`);renderSidebar();renderTCTable();
+}
+function deleteSuite(sid){
+  const s=suites.find(x=>x.id===sid);if(!s)return;
+  const n=suiteCount(sid);
+  if(!confirm(n?`Delete "${s.name}" and its ${n} test case(s)?`:`Delete suite "${s.name}"?`))return;
+  // Mark suite and all its TCs as deleted
+  const tcIds=testcases.filter(t=>t.suiteId===sid).map(t=>t.id);
+  markDeleted(sid,...tcIds);
+  suites=suites.filter(x=>x.id!==sid);
+  testcases=testcases.filter(t=>t.suiteId!==sid);
+  if(activeSuiteId===sid){activeSuiteId=null;closeDetail();}
+  saveData(`Suite deleted: ${s.name}`);renderSidebar();renderTCTable();showToast(`Suite "${s.name}" deleted`);
+}
+
+/* ══ TC TABLE ══ */
+function filteredTC(){
+  let list=testcases.filter(t=>t.teamId===activeTeamId);
+  if(activeSuiteId)list=list.filter(t=>t.suiteId===activeSuiteId);
+  const q=document.getElementById('searchBox').value.toLowerCase();
+  const fp=document.getElementById('filterPriority').value;
+  const fs=document.getElementById('filterSprint').value;
+  if(q)list=list.filter(t=>t.title.toLowerCase().includes(q)||t.id.toLowerCase().includes(q));
+  if(selectedTypes.size)list=list.filter(t=>selectedTypes.has(t.type));
+  if(fp)list=list.filter(t=>t.priority===fp);
+  if(fs)list=list.filter(t=>(t.sprint||'')===fs);
+  return list;
+}
+function suiteName(id){return(suites.find(s=>s.id===id)||{name:'—'}).name;}
+function renderTCTable(){
+  const wrap=document.getElementById('tcTable');
+  const list=filteredTC();
+  if(!list.length){wrap.innerHTML=`<div class="empty"><i class="ti ti-clipboard-x"></i><span>No test cases found</span><button class="btn primary" onclick="newTC()"><i class="ti ti-plus"></i> Add test case</button></div>`;return;}
+  const showSuite=!activeSuiteId;
+  wrap.innerHTML=`<table><thead><tr>
+    <th style="width:74px">ID</th><th>Title</th>
+    ${showSuite?'<th style="width:110px">Suite</th>':''}
+    <th style="width:80px">Sprint</th>
+    <th style="width:96px">Type</th><th style="width:76px">Priority</th>
+  </tr></thead><tbody id="tcBody"></tbody></table>`;
+  const tbody=document.getElementById('tcBody');
+  list.forEach(tc=>{
+    const tr=document.createElement('tr');
+    if(selectedTC&&selectedTC.id===tc.id)tr.classList.add('sel-row');
+    tr.innerHTML=`<td class="tc-id">${tc.id}</td>
+      <td style="white-space:normal;word-break:break-word;line-height:1.4">${esc(tc.title)}</td>
+      ${showSuite?`<td style="color:var(--text2);font-size:12px">${esc(suiteName(tc.suiteId))}</td>`:''}
+      <td style="font-size:12px;color:var(--text3)">${esc(tc.sprint||'—')}</td>
+      <td>${tc.type?`<span class="badge ${tc.type}">${tc.type}</span>`:'<span style="color:var(--text3)">—</span>'}</td>
+      <td><span class="badge ${tc.priority}">${tc.priority}</span></td>`;
+    tr.onclick=()=>openDetail(tc);
+    tbody.appendChild(tr);
+  });
+}
+
+/* ══ TC DETAIL ══ */
+function openDetail(tc){
+  selectedTC=tc;editingTC=JSON.parse(JSON.stringify(tc));
+  document.getElementById('tcDetailPanel').classList.remove('hidden');
+  document.getElementById('dpId').textContent=tc.id;
+  renderDetailBody();renderTCTable();
+}
+function closeDetail(){
+  selectedTC=null;editingTC=null;
+  document.getElementById('tcDetailPanel').classList.add('hidden');
+  renderTCTable();
+}
+function renderDetailBody(){
+  const tc=editingTC;
+  const sOpts=teamSuites().map(s=>`<option value="${s.id}"${s.id===tc.suiteId?' selected':''}>${esc(s.name)}</option>`).join('');
+  // build sprint datalist
+  const sprints=[...new Set(testcases.map(t=>t.sprint||'').filter(Boolean))];
+  const dlId='sprint-dl-'+Date.now();
+  const dl=`<datalist id="${dlId}">${sprints.map(s=>`<option value="${esc(s)}">`).join('')}</datalist>`;
+  document.getElementById('dpBody').innerHTML=`
+    <div class="field"><label>Title</label><input id="de-title" value="${esc(tc.title)}"></div>
+    <div class="row2">
+      <div class="field"><label>Suite</label><select id="de-suite">${sOpts}</select></div>
+      <div class="field"><label>Sprint</label>${dl}<input id="de-sprint" list="${dlId}" placeholder="e.g. Sprint 1" value="${esc(tc.sprint||'')}"></div>
+    </div>
+    <div class="field"><label>Test type</label><div class="type-grid" id="typeGrid"></div></div>
+    <div class="field"><label>Priority</label><select id="de-priority">
+      <option value="high"${tc.priority==='high'?' selected':''}>High</option>
+      <option value="medium"${tc.priority==='medium'?' selected':''}>Medium</option>
+      <option value="low"${tc.priority==='low'?' selected':''}>Low</option>
+    </select></div>
+    <div class="field"><label>Preconditions</label><textarea id="de-pre">${esc(tc.preconditions||'')}</textarea></div>
+    <div class="field">
+      <label>Steps &amp; expected results</label>
+      <div class="steps-wrap" id="stepsWrap"></div>
+      <button class="btn sm" style="margin-top:7px;width:100%;justify-content:center" onclick="addStep()"><i class="ti ti-plus"></i> Add step</button>
+    </div>
+    <div class="field">
+      <label>Acceptance criteria <span style="font-weight:400;color:var(--text3)">(definition of done)</span></label>
+      <textarea id="de-acceptance" placeholder="e.g. User is redirected to dashboard&#10;Error message matches design spec&#10;API returns 200 with correct payload" style="min-height:80px">${esc(tc.acceptance||'')}</textarea>
+    </div>
+    <div class="field"><label>Tags <span style="font-weight:400;color:var(--text3)">(comma separated)</span></label><input id="de-tags" value="${(tc.tags||[]).join(', ')}"></div>`;
+  renderTypeGrid();renderSteps();
+}
+function renderTypeGrid(){
+  const g=document.getElementById('typeGrid');if(!g)return;g.innerHTML='';
+  TC_TYPES.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='type-chip'+(editingTC.type===t?' sel '+t:'');
+    b.textContent=t.charAt(0).toUpperCase()+t.slice(1);
+    b.onclick=()=>{editingTC.type=editingTC.type===t?null:t;renderTypeGrid();};
+    g.appendChild(b);
+  });
+}
+function renderSteps(){
+  const wrap=document.getElementById('stepsWrap');if(!wrap)return;wrap.innerHTML='';
+  (editingTC.steps||[]).forEach((s,i)=>{
+    const row=document.createElement('div');row.className='step-row';
+    row.innerHTML=`<span class="step-num">${i+1}</span>
+      <div class="step-inputs">
+        <textarea placeholder="Action…" oninput="editingTC.steps[${i}].action=this.value">${esc(s.action)}</textarea>
+        <textarea placeholder="Expected result…" oninput="editingTC.steps[${i}].expected=this.value">${esc(s.expected)}</textarea>
+      </div>
+      <button class="step-del" onclick="removeStep(${i})"><i class="ti ti-x"></i></button>`;
+    wrap.appendChild(row);
+  });
+}
+function addStep(){if(!editingTC)return;editingTC.steps.push({action:'',expected:''});renderSteps();}
+function removeStep(i){editingTC.steps.splice(i,1);renderSteps();}
+function saveTC(){
+  if(!editingTC)return;
+  editingTC.title=document.getElementById('de-title').value.trim()||editingTC.title;
+  editingTC.suiteId=document.getElementById('de-suite').value;
+  editingTC.sprint=document.getElementById('de-sprint').value.trim();
+  editingTC.priority=document.getElementById('de-priority').value;
+  editingTC.preconditions=document.getElementById('de-pre').value.trim();
+  editingTC.acceptance=document.getElementById('de-acceptance').value.trim();
+  editingTC.tags=document.getElementById('de-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const idx=testcases.findIndex(t=>t.id===editingTC.id);
+  const isNew=idx<0;
+  if(isNew){
+    // Ensure unique ID — assign and increment counter now
+    editingTC.id='TC-'+String(counter++).padStart(3,'0');
+    testcases.push(editingTC);
+  } else {
+    testcases[idx]=editingTC;
+  }
+  saveData(isNew?`TC added: ${editingTC.id} — ${editingTC.title}`:`TC updated: ${editingTC.id} — ${editingTC.title}`);
+  showToast(isNew?'Test case added':'Test case updated');
+  selectedTC=editingTC;closeDetail();renderSidebar();
+}
+function deleteTC(){
+  if(!editingTC)return;
+  if(!confirm(`Delete ${editingTC.id}?`))return;
+  const _dtc=editingTC;
+  markDeleted(_dtc.id); // record deletion so it never resurfaces from stale localStorage
+  testcases=testcases.filter(t=>t.id!==editingTC.id);
+  // Remove from all run cases
+  plans.forEach(p=>(p.runs||[]).forEach(r=>{
+    r.cases=(r.cases||[]).filter(c=>c.tcId!==_dtc.id);
+  }));
+  saveData(`TC deleted: ${_dtc.id} — ${_dtc.title}`);showToast('Deleted');closeDetail();renderSidebar();
+}
+function newTC(){
+  const sid=activeSuiteId||(teamSuites()[0]||suites[0]||{id:'s0'}).id;
+  // Use a preview ID — counter only increments when saveTC() is called
+  const previewId='TC-'+String(counter).padStart(3,'0');
+  openDetail({id:previewId,suiteId:sid,teamId:activeTeamId,sprint:'',title:'New test case',type:'functional',priority:'medium',preconditions:'',acceptance:'',steps:[{action:'',expected:''}],tags:[]});
+}
+
+/* ══════════════════════════════
+   TEST PLANS
+══════════════════════════════ */
+function openNewPlanModal(){
+  document.getElementById('np-name').value='';
+  document.getElementById('np-desc').value='';
+  document.getElementById('newPlanModal').classList.add('open');
+  setTimeout(()=>document.getElementById('np-name').focus(),50);
+}
+function createPlan(){
+  const name=document.getElementById('np-name').value.trim();
+  if(!name){showToast('Plan name is required');return;}
+  const plan={id:'P-'+String(planCounter++).padStart(3,'0'),name,desc:document.getElementById('np-desc').value.trim(),runs:[],teamId:activeTeamId,created:Date.now()};
+  plans.push(plan);
+  saveData(`Plan created: ${plan.name}`);
+  document.getElementById('newPlanModal').classList.remove('open');
+  renderPlansList();
+  activePlanId=plan.id;
+  renderPlanDetail(plan.id);
+  showToast('Plan created');
+}
+function renderPlansList(){
+  const el=document.getElementById('plansList');el.innerHTML='';
+  const teamPlans=plans.filter(p=>p.teamId===activeTeamId);
+  if(!teamPlans.length){el.innerHTML='<div style="padding:20px;text-align:center;font-size:12px;color:var(--text3)">No plans yet</div>';return;}
+  teamPlans.forEach(p=>{
+    const totalRuns=p.runs.length;
+    const d=document.createElement('div');
+    d.className='plan-card'+(activePlanId===p.id?' active':'');
+    d.innerHTML=`<div class="plan-card-name">${esc(p.name)}</div>
+      <div class="plan-card-meta"><span>${totalRuns} run${totalRuns!==1?'s':''}</span><span>${new Date(p.created).toLocaleDateString()}</span></div>`;
+    d.onclick=()=>{activePlanId=p.id;renderPlansList();renderPlanDetail(p.id);};
+    el.appendChild(d);
+  });
+}
+function renderPlanDetail(pid){
+  const plan=plans.find(p=>p.id===pid);
+  if(!plan)return;
+  const el=document.getElementById('planDetail');
+  el.innerHTML=`
+    <div class="plan-detail-head">
+      <div>
+        <div class="plan-detail-title">${esc(plan.name)}</div>
+        ${plan.desc?`<div style="font-size:12px;color:var(--text3);margin-top:2px">${esc(plan.desc)}</div>`:''}
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn danger-soft sm" onclick="deletePlan('${plan.id}')"><i class="ti ti-trash"></i> Delete plan</button>
+        <button class="btn primary" onclick="openNewRunModal('${plan.id}')"><i class="ti ti-plus"></i> New test run</button>
+      </div>
+    </div>
+    <div class="runs-list" id="runsList-${pid}"></div>`;
+  renderRuns(plan);
+}
+function deletePlan(pid){
+  const p=plans.find(x=>x.id===pid);if(!p)return;
+  if(!confirm(`Delete plan "${p.name}" and all its runs?`))return;
+  const _dpname=(plans.find(x=>x.id===pid)||{name:'?'}).name;
+  plans=plans.filter(x=>x.id!==pid);
+  if(activePlanId===pid)activePlanId=null;
+  saveData(`Plan deleted: ${_dpname}`);renderPlansList();
+  document.getElementById('planDetail').innerHTML=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text3);font-size:13px"><i class="ti ti-clipboard-list" style="font-size:36px"></i><span>Select or create a test plan</span></div>`;
+  showToast('Plan deleted');
+}
+
+/* ── RUNS ── */
+function openNewRunModal(pid){
+  document.getElementById('nr-name').value='';
+  document.getElementById('nr-sprint').value='';
+  // populate sprint filter (team-scoped)
+  const spf=document.getElementById('nr-sprint-filter');
+  spf.innerHTML='<option value="">All sprints</option>';
+  const sprints=[...new Set(testcases.filter(t=>t.teamId===activeTeamId).map(t=>t.sprint||'').filter(Boolean))].sort();
+  sprints.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;spf.appendChild(o);});
+  selectedTCIds=new Set();
+  nrSelectedTypes=new Set();
+  nrSelectedSuites=new Set();
+  nrSelectedPriorities=new Set();
+  updateNrTypeLabel();
+  updateNrMultiLabel('suite');
+  updateNrMultiLabel('priority');
+  renderTCSelector();
+  renderTCSelector();
+  document.getElementById('newRunModal').classList.add('open');
+  document.getElementById('newRunModal').dataset.pid=pid;
+  setTimeout(()=>document.getElementById('nr-name').focus(),50);
+}
+let selectedTCIds=new Set();
+let nrSelectedTypes=new Set();
+
+/* ── Run modal type filter ── */
+function initNrTypeFilter(){
+  const opts=document.getElementById('nrTypeOpts');opts.innerHTML='';
+  TC_TYPES.forEach(t=>{
+    const row=document.createElement('div');row.className='multi-sel-opt';
+    row.innerHTML=`<input type="checkbox" id="nrt-${t}" value="${t}" ${nrSelectedTypes.has(t)?'checked':''}><label for="nrt-${t}" style="cursor:pointer;flex:1">${t.charAt(0).toUpperCase()+t.slice(1)}</label><span class="badge ${t}" style="font-size:10px;padding:1px 7px">${t.slice(0,3)}</span>`;
+    row.querySelector('input').onchange=e=>{
+      if(e.target.checked)nrSelectedTypes.add(t);else nrSelectedTypes.delete(t);
+      updateNrTypeLabel();renderTCSelector();
+    };
+    row.onclick=e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='LABEL')return;const cb=row.querySelector('input');cb.checked=!cb.checked;cb.onchange({target:cb});};
+    opts.appendChild(row);
+  });
+}
+function updateNrTypeLabel(){
+  const btn=document.getElementById('nrTypeBtn');
+  const label=document.getElementById('nrTypeLabel');
+  if(!nrSelectedTypes.size){label.textContent='All types';btn.classList.remove('has-sel');return;}
+  const names=[...nrSelectedTypes].map(t=>t.charAt(0).toUpperCase()+t.slice(1));
+  label.innerHTML=nrSelectedTypes.size===1?names[0]:`${names[0]} <span class="type-count-pill">+${nrSelectedTypes.size-1}</span>`;
+  btn.classList.add('has-sel');
+}
+function toggleNrTypeDropdown(e){
+  e.stopPropagation();
+  const drop=document.getElementById('nrTypeDrop');
+  const isOpen=drop.classList.contains('open');
+  closeAllDropdowns();
+  if(!isOpen){initNrTypeFilter();drop.classList.add('open');}
+}
+function clearNrTypeFilter(){
+  nrSelectedTypes.clear();updateNrTypeLabel();initNrTypeFilter();renderTCSelector();
+}
+
+/* ── Suite & Priority multi-select filters ── */
+let nrSelectedSuites=new Set();
+let nrSelectedPriorities=new Set();
+const NR_PRIORITIES=['high','medium','low'];
+
+function toggleNrMultiDrop(e,dropId,initFn){
+  e.stopPropagation();
+  const drop=document.getElementById(dropId);
+  const isOpen=drop.classList.contains('open');
+  closeAllDropdowns();
+  if(!isOpen){ window[initFn](); drop.classList.add('open'); }
+}
+
+function initNrSuiteFilter(){
+  const opts=document.getElementById('nrSuiteOpts');opts.innerHTML='';
+  teamSuites().forEach(s=>{
+    const row=document.createElement('div');row.className='multi-sel-opt';
+    row.innerHTML=`<input type="checkbox" id="nrs-${s.id}" value="${s.id}" ${nrSelectedSuites.has(s.id)?'checked':''}><label for="nrs-${s.id}" style="cursor:pointer;flex:1">${esc(s.name)}</label>`;
+    row.querySelector('input').onchange=e=>{
+      if(e.target.checked)nrSelectedSuites.add(s.id);else nrSelectedSuites.delete(s.id);
+      updateNrMultiLabel('suite');renderTCSelector();
+    };
+    row.onclick=e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='LABEL')return;const cb=row.querySelector('input');cb.checked=!cb.checked;cb.onchange({target:cb});};
+    opts.appendChild(row);
+  });
+}
+
+function initNrPriorFilter(){
+  const opts=document.getElementById('nrPriorOpts');opts.innerHTML='';
+  NR_PRIORITIES.forEach(p=>{
+    const row=document.createElement('div');row.className='multi-sel-opt';
+    row.innerHTML=`<input type="checkbox" id="nrp-${p}" value="${p}" ${nrSelectedPriorities.has(p)?'checked':''}><label for="nrp-${p}" style="cursor:pointer;flex:1">${p.charAt(0).toUpperCase()+p.slice(1)}</label><span class="badge ${p}" style="font-size:10px;padding:1px 7px">${p}</span>`;
+    row.querySelector('input').onchange=e=>{
+      if(e.target.checked)nrSelectedPriorities.add(p);else nrSelectedPriorities.delete(p);
+      updateNrMultiLabel('priority');renderTCSelector();
+    };
+    row.onclick=e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='LABEL')return;const cb=row.querySelector('input');cb.checked=!cb.checked;cb.onchange({target:cb});};
+    opts.appendChild(row);
+  });
+}
+
+function updateNrMultiLabel(type){
+  if(type==='suite'){
+    const btn=document.getElementById('nrSuiteBtn');
+    const label=document.getElementById('nrSuiteLabel');
+    if(!nrSelectedSuites.size){label.textContent='All suites';btn.classList.remove('has-sel');return;}
+    const names=teamSuites().filter(s=>nrSelectedSuites.has(s.id)).map(s=>s.name);
+    label.innerHTML=nrSelectedSuites.size===1?esc(names[0]):`${esc(names[0])} <span class="type-count-pill">+${nrSelectedSuites.size-1}</span>`;
+    btn.classList.add('has-sel');
+  } else {
+    const btn=document.getElementById('nrPriorBtn');
+    const label=document.getElementById('nrPriorLabel');
+    if(!nrSelectedPriorities.size){label.textContent='All priorities';btn.classList.remove('has-sel');return;}
+    const names=[...nrSelectedPriorities].map(p=>p.charAt(0).toUpperCase()+p.slice(1));
+    label.innerHTML=nrSelectedPriorities.size===1?names[0]:`${names[0]} <span class="type-count-pill">+${nrSelectedPriorities.size-1}</span>`;
+    btn.classList.add('has-sel');
+  }
+}
+
+function clearNrFilter(type){
+  if(type==='suite'){nrSelectedSuites.clear();initNrSuiteFilter();updateNrMultiLabel('suite');}
+  else{nrSelectedPriorities.clear();initNrPriorFilter();updateNrMultiLabel('priority');}
+  renderTCSelector();
+}
+
+/* ── Assignee ── */
+function updateAssignee(pid,rid,tcId,val){
+  const plan=plans.find(p=>p.id===pid);if(!plan)return;
+  const run=plan.runs.find(r=>r.id===rid);if(!run)return;
+  const c=run.cases.find(c=>c.tcId===tcId);if(!c)return;
+  c.assignee=val;
+  saveData(`Assignee set: ${(testcases.find(t=>t.id===tcId)||{title:tcId}).title} → ${val||'unassigned'}`);
+}
+
+function renderTCSelector(){
+  const q=document.getElementById('nr-search').value.toLowerCase();
+  const sp=document.getElementById('nr-sprint-filter').value;
+  let list=testcases.filter(t=>t.teamId===activeTeamId);
+  if(q) list=list.filter(t=>t.title.toLowerCase().includes(q)||t.id.toLowerCase().includes(q));
+  if(nrSelectedSuites.size) list=list.filter(t=>nrSelectedSuites.has(t.suiteId));
+  if(sp) list=list.filter(t=>(t.sprint||'')===sp);
+  if(nrSelectedPriorities.size) list=list.filter(t=>nrSelectedPriorities.has(t.priority));
+  if(nrSelectedTypes.size) list=list.filter(t=>nrSelectedTypes.has(t.type));
+  const wrap=document.getElementById('tcSelector');wrap.innerHTML='';
+  list.forEach(tc=>{
+    const row=document.createElement('div');row.className='tc-sel-row';
+    const cb=document.createElement('input');cb.type='checkbox';cb.checked=selectedTCIds.has(tc.id);
+    const onChange=()=>{if(cb.checked)selectedTCIds.add(tc.id);else selectedTCIds.delete(tc.id);updateSelCount();};
+    cb.onchange=onChange;
+    row.appendChild(cb);
+    const sprintTag=tc.sprint?`<span style="font-size:10px;color:var(--text3);background:var(--bg3);padding:1px 6px;border-radius:10px;flex-shrink:0">${esc(tc.sprint)}</span>`:'';
+    const typeTag=tc.type?`<span class="badge ${tc.type}" style="font-size:10px;padding:1px 7px;flex-shrink:0">${tc.type}</span>`:'';
+    const priorTag=tc.priority?`<span class="badge ${tc.priority}" style="font-size:10px;padding:1px 7px;flex-shrink:0">${tc.priority}</span>`:'';
+    const idSpan=document.createElement('span');idSpan.className='tc-sel-id';idSpan.textContent=tc.id;
+    const titleSpan=document.createElement('span');titleSpan.style.flex='1';titleSpan.textContent=tc.title;
+    row.appendChild(idSpan);row.appendChild(titleSpan);
+    row.insertAdjacentHTML('beforeend',typeTag+priorTag+sprintTag);
+    row.onclick=e=>{if(e.target.tagName==='INPUT')return;cb.checked=!cb.checked;onChange();};
+    wrap.appendChild(row);
+  });
+  updateSelCount();
+}
+function updateSelCount(){document.getElementById('selCount').textContent=selectedTCIds.size+' selected';}
+function selectAllTC(sel){
+  const q=document.getElementById('nr-search').value.toLowerCase();
+  const sp=document.getElementById('nr-sprint-filter').value;
+  let list=testcases.filter(t=>t.teamId===activeTeamId);
+  if(q) list=list.filter(t=>t.title.toLowerCase().includes(q)||t.id.toLowerCase().includes(q));
+  if(nrSelectedSuites.size) list=list.filter(t=>nrSelectedSuites.has(t.suiteId));
+  if(sp) list=list.filter(t=>(t.sprint||'')===sp);
+  if(nrSelectedPriorities.size) list=list.filter(t=>nrSelectedPriorities.has(t.priority));
+  if(nrSelectedTypes.size) list=list.filter(t=>nrSelectedTypes.has(t.type));
+  list.forEach(t=>{if(sel)selectedTCIds.add(t.id);else selectedTCIds.delete(t.id);});
+  renderTCSelector();
+}
+function createRun(){
+  const name=document.getElementById('nr-name').value.trim();
+  if(!name){showToast('Run name is required');return;}
+  if(!selectedTCIds.size){showToast('Select at least one test case');return;}
+  const pid=document.getElementById('newRunModal').dataset.pid;
+  const plan=plans.find(p=>p.id===pid);if(!plan)return;
+  const cases=[...selectedTCIds].map(id=>({tcId:id,status:'Untested',notes:'',assignee:'',attachments:[]}));
+  const run={id:'R-'+String(runCounter++).padStart(3,'0'),name,sprint:document.getElementById('nr-sprint').value.trim(),cases,created:Date.now()};
+  plan.runs.push(run);
+  saveData(`Run created: ${run.name} (${cases.length} TCs)`);
+  document.getElementById('newRunModal').classList.remove('open');
+  selectedTCIds=new Set();
+  renderRuns(plan);
+  showToast('Test run created');
+}
+function renderRuns(plan){
+  const wrap=document.getElementById('runsList-'+plan.id);if(!wrap)return;
+  wrap.innerHTML='';
+  if(!plan.runs.length){
+    wrap.innerHTML=`<div class="empty"><i class="ti ti-player-play"></i><span>No test runs yet</span><button class="btn primary" onclick="openNewRunModal('${plan.id}')"><i class="ti ti-plus"></i> New test run</button></div>`;
+    return;
+  }
+  plan.runs.forEach(run=>{
+    const stats=getRunStats(run);
+    const total=run.cases.length;
+    const card=document.createElement('div');card.className='run-card';
+    const pct=s=>total?Math.round(stats[s]/total*100):0;
+    card.innerHTML=`
+      <div class="run-progress"><div class="run-progress-bar">
+        <span class="bar-fill passed" style="width:${pct('Passed')}%"></span>
+        <span class="bar-fill failed" style="width:${pct('Failed')}%"></span>
+        <span class="bar-fill blocked" style="width:${pct('Blocked')}%"></span>
+      </div></div>
+      <div class="run-card-head" onclick="toggleRun('${plan.id}','${run.id}')">
+        <div>
+          <div class="run-name">${esc(run.name)}</div>
+          <div class="run-meta">${run.sprint?`${esc(run.sprint)} · `:''} ${total} cases · ${new Date(run.created).toLocaleDateString()}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          ${stats.Passed?`<span class="badge Passed">${stats.Passed} passed</span>`:''}
+          ${stats.Failed?`<span class="badge Failed">${stats.Failed} failed</span>`:''}
+          ${stats.Blocked?`<span class="badge Blocked">${stats.Blocked} blocked</span>`:''}
+          ${stats.Untested?`<span class="badge Untested">${stats.Untested} untested</span>`:''}
+          <button class="btn sm" onclick="event.stopPropagation();showRunAnalytics('${plan.id}','${run.id}')"><i class="ti ti-chart-bar"></i> Analytics</button>
+          <button class="btn sm" onclick="event.stopPropagation();exportRunExcel('${plan.id}','${run.id}')"><i class="ti ti-table-export"></i> Export</button>
+          <button class="btn danger-soft sm" onclick="event.stopPropagation();deleteRun('${plan.id}','${run.id}')"><i class="ti ti-trash"></i></button>
+          <i class="ti ti-chevron-down" style="color:var(--text3);font-size:15px" id="chev-${run.id}"></i>
+        </div>
+      </div>
+      <div class="run-body" id="run-body-${run.id}">
+        ${run.cases.map(c=>renderRunRow(c,plan.id,run.id)).join('')}
+      </div>`;
+    wrap.appendChild(card);
+  });
+}
+function renderRunRow(c,pid,rid){
+  const tc=testcases.find(t=>t.id===c.tcId)||{id:c.tcId,title:'(deleted TC)',suiteId:'',type:'',priority:'',preconditions:'',steps:[],tags:[]};
+  const attHtml=c.attachments&&c.attachments.length?
+    `<div class="attach-thumb">${c.attachments.map((a,ai)=>`
+      <div class="attach-thumb-item" onclick="openLightbox('${pid}','${rid}','${c.tcId}',${ai})">
+        ${a.type==='image'?`<img src="${a.data}" alt="evidence">`:`<div class="vid-thumb"><i class="ti ti-player-play"></i></div>`}
+        <button class="del-attach" onclick="event.stopPropagation();removeAttachment('${pid}','${rid}','${c.tcId}',${ai})" title="Remove"><i class="ti ti-x"></i></button>
+      </div>`).join('')}
+    </div>`:'';
+  const stepsHtml=(tc.steps&&tc.steps.length)?`
+    <div class="run-tc-steps">
+      <div class="run-tc-steps-head" style="display:grid;grid-template-columns:24px 1fr 1fr">
+        <div style="border-right:0.5px solid var(--border);text-align:center">#</div>
+        <div style="padding-left:8px">Action</div>
+        <div style="padding-left:8px;border-left:0.5px solid var(--border)">Expected Result</div>
+      </div>
+      ${tc.steps.map((s,i)=>`
+        <div class="run-tc-step-row">
+          <div class="run-tc-step-num">${i+1}</div>
+          <div style="border-right:0.5px solid var(--border)">${esc(s.action||'')}</div>
+          <div>${esc(s.expected||'')}</div>
+        </div>`).join('')}
+    </div>`:'';
+  const tagsHtml=(tc.tags&&tc.tags.length)?tc.tags.map(t=>`<span style="font-size:10px;background:var(--bg3);color:var(--text2);padding:1px 7px;border-radius:10px">${esc(t)}</span>`).join(''):'';
+  return `<div class="run-tc-row" id="rrow-${rid}-${c.tcId}">
+    <span class="run-tc-id">${tc.id}</span>
+    <div style="flex:1;min-width:200px">
+      <div class="run-tc-title">${esc(tc.title)}</div>
+      <div class="run-tc-meta">
+        ${tc.type?`<span class="badge ${tc.type}" style="font-size:10px;padding:1px 7px">${tc.type}</span>`:''}
+        ${tc.priority?`<span class="badge ${tc.priority}" style="font-size:10px;padding:1px 7px">${tc.priority}</span>`:''}
+        ${tc.sprint?`<span style="font-size:10px;color:var(--text3);background:var(--bg3);padding:1px 7px;border-radius:10px">${esc(tc.sprint)}</span>`:''}
+        ${tc.suiteId?`<span style="font-size:10px;color:var(--text3)"><i class="ti ti-folder" style="font-size:10px"></i> ${esc(suiteName(tc.suiteId))}</span>`:''}
+        ${tagsHtml}
+      </div>
+      ${tc.preconditions?`<div class="run-tc-field"><strong>Preconditions:</strong> ${esc(tc.preconditions)}</div>`:''}
+      ${stepsHtml}
+      ${attHtml}
+      <textarea class="run-notes" placeholder="Notes…" oninput="updateNotes('${pid}','${rid}','${c.tcId}',this.value)" rows="1">${esc(c.notes||'')}</textarea>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0">
+      <select class="run-status-sel ${c.status}" onchange="updateRunStatus('${pid}','${rid}','${c.tcId}',this.value,this)">
+        ${RUN_STATUSES.map(s=>`<option value="${s}"${s===c.status?' selected':''}>${s}</option>`).join('')}
+      </select>
+      <input type="text" value="${esc(c.assignee||'')}" placeholder="Assignee…"
+        style="font-size:12px;padding:4px 8px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);outline:none;width:130px"
+        onchange="updateAssignee('${pid}','${rid}','${c.tcId}',this.value)"
+        title="Assignee">
+      <label class="attach-btn" title="Attach screenshot/video">
+        <i class="ti ti-paperclip"></i> Evidence
+        <input type="file" accept="image/*,video/*" multiple style="display:none" onchange="handleAttach('${pid}','${rid}','${c.tcId}',event)">
+      </label>
+    </div>
+  </div>`;
+}
+function toggleRun(pid,rid){
+  const body=document.getElementById('run-body-'+rid);
+  const chev=document.getElementById('chev-'+rid);
+  body.classList.toggle('open');
+  if(chev)chev.style.transform=body.classList.contains('open')?'rotate(180deg)':'';
+}
+function deleteRun(pid,rid){
+  const plan=plans.find(p=>p.id===pid);if(!plan)return;
+  const run=plan.runs.find(r=>r.id===rid);
+  if(!confirm(`Delete run "${run.name}"?`))return;
+  const _drname=(plan.runs.find(r=>r.id===rid)||{name:'?'}).name;
+  plan.runs=plan.runs.filter(r=>r.id!==rid);
+  saveData(`Run deleted: ${_drname}`);renderRuns(plan);showToast('Run deleted');
+}
+function exportRunExcel(pid,rid){
+  const plan=plans.find(p=>p.id===pid);if(!plan)return;
+  const run=plan.runs.find(r=>r.id===rid);if(!run)return;
+  const rows=run.cases.map(c=>{
+    const tc=testcases.find(t=>t.id===c.tcId)||{id:c.tcId,title:'(deleted)',type:'',priority:'',suiteId:'',sprint:'',preconditions:'',steps:[],tags:[]};
+    const steps=(tc.steps||[]).map((s,i)=>`${i+1}. [Action] ${s.action||''} | [Expected] ${s.expected||''}`).join('\n');
+    return {
+      'TC ID':tc.id,
+      'Title':tc.title,
+      'Suite':suiteName(tc.suiteId),
+      'Type':tc.type||'',
+      'Priority':tc.priority||'',
+      'Sprint':tc.sprint||'',
+      'Preconditions':tc.preconditions||'',
+      'Steps':steps,
+      'Tags':(tc.tags||[]).join(', '),
+      'Status':c.status,
+      'Assignee':c.assignee||'',
+      'Notes':c.notes||''
+    };
+  });
+  const ws=XLSX.utils.json_to_sheet(rows);
+  // Column widths
+  ws['!cols']=[{wch:10},{wch:35},{wch:20},{wch:12},{wch:10},{wch:12},{wch:25},{wch:60},{wch:20},{wch:12},{wch:20},{wch:30}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,run.name.slice(0,31));
+  XLSX.writeFile(wb,`${run.name.replace(/[^a-z0-9]/gi,'_')}.xlsx`);
+  showToast('✓ Exported: '+run.name+'.xlsx');
+}
+function updateRunStatus(pid,rid,tcId,val,sel){
+  const plan=plans.find(p=>p.id===pid);if(!plan)return;
+  const run=plan.runs.find(r=>r.id===rid);if(!run)return;
+  const c=run.cases.find(c=>c.tcId===tcId);if(!c)return;
+  c.status=val;
+  sel.className='run-status-sel '+val;
+  saveData(`Run status: ${(testcases.find(t=>t.id===tcId)||{title:tcId}).title} → ${val}`);
+  // refresh progress bar in card head without full re-render
+  const stats=getRunStats(run);const total=run.cases.length;
+  const pct=s=>total?Math.round(stats[s]/total*100):0;
+  const bar=sel.closest('.run-card').querySelector('.run-progress-bar');
+  if(bar){
+    const spans=bar.querySelectorAll('span');
+    if(spans[0])spans[0].style.width=pct('Passed')+'%';
+    if(spans[1])spans[1].style.width=pct('Failed')+'%';
+    if(spans[2])spans[2].style.width=pct('Blocked')+'%';
+  }
+}
+function updateNotes(pid,rid,tcId,val){
+  const plan=plans.find(p=>p.id===pid);if(!plan)return;
+  const run=plan.runs.find(r=>r.id===rid);if(!run)return;
+  const c=run.cases.find(c=>c.tcId===tcId);if(c)c.notes=val;
+  saveData(`Notes updated on: ${(testcases.find(t=>t.id===tcId)||{title:tcId}).title}`);
+}
+function handleAttach(pid,rid,tcId,event){
+  const plan=plans.find(p=>p.id===pid);if(!plan)return;
+  const run=plan.runs.find(r=>r.id===rid);if(!run)return;
+  const c=run.cases.find(c=>c.tcId===tcId);if(!c)return;
+  if(!c.attachments)c.attachments=[];
+  const files=[...event.target.files];
+  let loaded=0;
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      c.attachments.push({type:f.type.startsWith('image')?'image':'video',data:e.target.result,name:f.name});
+      loaded++;
+      if(loaded===files.length){saveData(`Evidence attached: ${f.name}`);renderRuns(plan);toggleRun(pid,rid);document.getElementById('run-body-'+rid).classList.add('open');}
+    };
+    reader.readAsDataURL(f);
+  });
+}
+function removeAttachment(pid,rid,tcId,ai){
+  const plan=plans.find(p=>p.id===pid);if(!plan)return;
+  const run=plan.runs.find(r=>r.id===rid);if(!run)return;
+  const c=run.cases.find(c=>c.tcId===tcId);if(!c)return;
+  c.attachments.splice(ai,1);
+  saveData('Evidence removed');renderRuns(plan);
+  document.getElementById('run-body-'+rid).classList.add('open');
+}
+function openLightbox(pid,rid,tcId,ai){
+  const plan=plans.find(p=>p.id===pid);if(!plan)return;
+  const run=plan.runs.find(r=>r.id===rid);if(!run)return;
+  const c=run.cases.find(c=>c.tcId===tcId);if(!c||!c.attachments[ai])return;
+  const a=c.attachments[ai];
+  const box=document.getElementById('lightboxContent');
+  box.innerHTML=a.type==='image'?`<img src="${a.data}" alt="evidence">`:
+    `<video src="${a.data}" controls style="max-width:92vw;max-height:88vh;border-radius:8px"></video>`;
+  document.getElementById('lightbox').classList.add('open');
+}
+function getRunStats(run){
+  const s={Passed:0,Failed:0,Blocked:0,Untested:0};
+  run.cases.forEach(c=>s[c.status]=(s[c.status]||0)+1);
+  return s;
+}
+
+/* ── ANALYTICS MODAL ── */
+function showRunAnalytics(pid,rid){
+  const plan=plans.find(p=>p.id===pid);if(!plan)return;
+  const run=plan.runs.find(r=>r.id===rid);if(!run)return;
+  const stats=getRunStats(run);
+  const total=run.cases.length;
+  const pct=n=>total?Math.round(n/total*100):0;
+  const colors={Passed:'#1D9E75',Failed:'#E24B4A',Blocked:'#BA7517',Untested:'#B4B2A9'};
+
+  // donut
+  const donutR=54,cx=60,cy=60,r=donutR;
+  let offset=0;const TAU=2*Math.PI;
+  const slices=['Passed','Failed','Blocked','Untested'].map(s=>{
+    const val=stats[s];const frac=total?val/total:0;
+    const start=offset;offset+=frac*TAU;
+    return{s,val,frac,start,end:offset};
+  }).filter(x=>x.val>0);
+  function arc(cx,cy,r,start,end){
+    if(end-start>=TAU-0.001){return`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colors[slices[0]?.s]||'#ccc'}" stroke-width="20"/>`;}
+    const x1=cx+r*Math.sin(start),y1=cy-r*Math.cos(start);
+    const x2=cx+r*Math.sin(end),y2=cy-r*Math.cos(end);
+    const large=end-start>Math.PI?1:0;
+    return`<path d="M${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2}" fill="none" stroke="${colors[slices.find(x=>x.start===start)?.s]||'#ccc'}" stroke-width="20" stroke-linecap="butt"/>`;
+  }
+  const svgArcs=slices.map(sl=>arc(cx,cy,r,sl.start,sl.end)).join('');
+  const donutSVG=`<svg width="120" height="120" viewBox="0 0 120 120">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--bg3)" stroke-width="20"/>
+    ${svgArcs}
+    <text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="16" font-weight="500" fill="var(--text)">${total}</text>
+  </svg>`;
+
+  // by suite
+  const byType={};
+  run.cases.forEach(c=>{
+    const tc=testcases.find(t=>t.id===c.tcId);
+    const key=tc?suiteName(tc.suiteId):'Unknown';
+    if(!byType[key])byType[key]={Passed:0,Failed:0,Blocked:0,Untested:0};
+    byType[key][c.status]=(byType[key][c.status]||0)+1;
+  });
+
+  // modal
+  const existing=document.getElementById('analyticsModal');if(existing)existing.remove();
+  const modal=document.createElement('div');
+  modal.className='modal-backdrop open';modal.id='analyticsModal';
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  modal.innerHTML=`<div class="modal wide" style="max-width:700px">
+    <div class="modal-head">
+      <h2><i class="ti ti-chart-bar" style="color:var(--info-text)"></i> Analytics — ${esc(run.name)}</h2>
+      <button class="btn sm" onclick="document.getElementById('analyticsModal').remove()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="s-label">Total</div><div class="s-val">${total}</div></div>
+        <div class="stat-card"><div class="s-label">Passed</div><div class="s-val passed">${stats.Passed}</div></div>
+        <div class="stat-card"><div class="s-label">Failed</div><div class="s-val failed">${stats.Failed}</div></div>
+        <div class="stat-card"><div class="s-label">Blocked</div><div class="s-val blocked">${stats.Blocked}</div></div>
+        <div class="stat-card"><div class="s-label">Untested</div><div class="s-val untested">${stats.Untested}</div></div>
+        <div class="stat-card"><div class="s-label">Pass rate</div><div class="s-val passed">${pct(stats.Passed)}%</div></div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-box">
+          <h3>Overall result</h3>
+          <div class="donut-wrap">
+            ${donutSVG}
+            <div class="donut-legend">
+              ${['Passed','Failed','Blocked','Untested'].map(s=>`
+                <div class="legend-item">
+                  <div class="legend-dot" style="background:${colors[s]}"></div>
+                  <span>${s}: <strong>${stats[s]}</strong> (${pct(stats[s])}%)</span>
+                </div>`).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="chart-box">
+          <h3>By suite</h3>
+          <div class="bar-chart">
+            ${Object.entries(byType).map(([suite,st])=>{
+              const t=Object.values(st).reduce((a,b)=>a+b,0);
+              return`<div class="bar-row">
+                <span class="bar-label" title="${esc(suite)}" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">${esc(suite)}</span>
+                <div class="bar-track">
+                  <div class="bar-progress" style="display:flex;height:100%">
+                    <div style="width:${t?Math.round(st.Passed/t*100):0}%;background:#1D9E75;border-radius:4px 0 0 4px"></div>
+                    <div style="width:${t?Math.round(st.Failed/t*100):0}%;background:#E24B4A"></div>
+                    <div style="width:${t?Math.round(st.Blocked/t*100):0}%;background:#BA7517"></div>
+                    <div style="width:${t?Math.round(st.Untested/t*100):0}%;background:#B4B2A9;border-radius:0 4px 4px 0"></div>
+                  </div>
+                </div>
+                <span class="bar-val">${t}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="chart-box">
+        <h3>Test case breakdown</h3>
+        <div style="overflow-x:auto">
+          <table class="tc-result-table">
+            <thead><tr><th style="width:70px">ID</th><th>Title</th><th style="width:80px">Suite</th><th style="width:80px">Status</th><th>Notes</th></tr></thead>
+            <tbody>
+              ${run.cases.map(c=>{
+                const tc=testcases.find(t=>t.id===c.tcId)||{id:c.tcId,title:'(deleted)',suiteId:''};
+                return`<tr>
+                  <td style="font-family:monospace;font-size:11px;color:var(--text3)">${tc.id}</td>
+                  <td>${esc(tc.title)}</td>
+                  <td style="font-size:11px;color:var(--text2)">${esc(suiteName(tc.suiteId))}</td>
+                  <td><span class="badge ${c.status}">${c.status}</span></td>
+                  <td style="font-size:12px;color:var(--text2)">${esc(c.notes||'—')}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="document.getElementById('analyticsModal').remove()">Close</button></div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+/* ══════════════════════════════
+   IMPORT / EXPORT
+══════════════════════════════ */
+let importRows=[],importHeaders=[],colMapping={};
+const FIELD_LABELS={id:'ID',suite:'Suite',title:'Title',type:'Type',priority:'Priority',sprint:'Sprint',preconditions:'Preconditions',steps:'Steps (pipe-sep)',expected:'Expected (pipe-sep)',tags:'Tags'};
+const FIELD_KEYS=Object.keys(FIELD_LABELS);
+const AUTO_MAP={id:['id','tc id','test id'],suite:['suite','feature','module'],title:['title','name','test name','test case','summary'],type:['type','test type','category'],priority:['priority','severity'],sprint:['sprint','milestone','iteration'],preconditions:['preconditions','pre-conditions','prerequisites'],steps:['steps','test steps','actions'],expected:['expected','expected result','expected results'],tags:['tags','labels']};
+
+function openImportModal(){
+  importRows=[];importHeaders=[];colMapping={};
+  document.getElementById('imp-step1').style.display='';
+  document.getElementById('imp-step2').style.display='none';
+  document.getElementById('importBtn').disabled=true;
+  document.getElementById('fileInput').value='';
+  document.getElementById('importModal').classList.add('open');
+}
+function closeImportModal(){document.getElementById('importModal').classList.remove('open');}
+function handleDragOver(e){e.preventDefault();document.getElementById('dropZone').classList.add('drag-over');}
+function handleDragLeave(){document.getElementById('dropZone').classList.remove('drag-over');}
+function handleDrop(e){e.preventDefault();document.getElementById('dropZone').classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)processFile(f);}
+function handleFileSelect(e){const f=e.target.files[0];if(f)processFile(f);}
+function processFile(file){
+  if(!file.name.match(/\.(xlsx|xls)$/i)){showToast('Please upload .xlsx or .xls');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      if(data.length<2){showToast('Sheet appears empty');return;}
+      importHeaders=data[0].map(h=>String(h).trim());
+      importRows=data.slice(1).filter(r=>r.some(c=>String(c).trim()));
+      document.getElementById('imp-step1').style.display='none';
+      document.getElementById('imp-step2').style.display='';
+      buildColMapping();buildPreview();
+      document.getElementById('importBtn').disabled=false;
+    }catch(err){showToast('Could not read file: '+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+function guessMapping(){
+  const map={};
+  FIELD_KEYS.forEach(fk=>{
+    const kw=AUTO_MAP[fk];
+    const idx=importHeaders.findIndex(h=>kw.includes(h.toLowerCase().trim()));
+    map[fk]=idx>=0?String(idx):'';
+  });
+  return map;
+}
+function buildColMapping(){
+  colMapping=guessMapping();
+  const c=document.getElementById('colMap');
+  c.innerHTML='<div style="font-size:11px;font-weight:500;color:var(--text2);padding:3px 0">Field</div><div style="font-size:11px;font-weight:500;color:var(--text2);padding:3px 0">Your column</div>';
+  FIELD_KEYS.forEach(fk=>{
+    const lbl=document.createElement('label');lbl.textContent=FIELD_LABELS[fk]+(fk==='title'?' *':'');lbl.style.cssText='font-size:12px;color:var(--text2);display:flex;align-items:center';
+    const sel=document.createElement('select');sel.id='cm_'+fk;
+    let opts='<option value="">— skip —</option>';
+    importHeaders.forEach((h,i)=>{opts+=`<option value="${i}"${colMapping[fk]===String(i)?' selected':''}>${h||'col '+(i+1)}</option>`;});
+    sel.innerHTML=opts;sel.onchange=()=>{colMapping[fk]=sel.value;buildPreview();};
+    c.appendChild(lbl);c.appendChild(sel);
+  });
+}
+function cellVal(row,fk){const idx=colMapping[fk];if(idx===''||idx==null)return '';return String(row[parseInt(idx)]||'').trim();}
+function buildPreview(){
+  const rows=importRows.slice(0,4);
+  const fields=FIELD_KEYS.filter(fk=>colMapping[fk]!=='');
+  document.getElementById('previewCount').textContent=`(first ${rows.length} of ${importRows.length})`;
+  let html='<table><thead><tr>'+fields.map(fk=>`<th>${FIELD_LABELS[fk]}</th>`).join('')+'</tr></thead><tbody>';
+  rows.forEach(r=>{html+='<tr>'+fields.map(fk=>`<td>${esc(cellVal(r,fk)||'—')}</td>`).join('')+'</tr>';});
+  html+='</tbody></table>';
+  document.getElementById('previewWrap').innerHTML=html;
+  const valid=importRows.filter(r=>cellVal(r,'title')).length;
+  const noTitle=importRows.length-valid;
+  const newS=[...new Set(importRows.filter(r=>cellVal(r,'suite')).map(r=>cellVal(r,'suite')))].filter(n=>!suites.find(s=>s.name.toLowerCase()===n.toLowerCase()));
+  document.getElementById('importSummary').innerHTML=`<span class="ok"><i class="ti ti-check" style="font-size:13px"></i> ${valid} valid</span>${noTitle?`<span class="warn"><i class="ti ti-alert-triangle" style="font-size:13px"></i> ${noTitle} missing title</span>`:''}${newS.length?`<span class="warn"><i class="ti ti-folder-plus" style="font-size:13px"></i> ${newS.length} new suite(s)</span>`:''}`;
+}
+function normalise(val,allowed,fb){const v=String(val||'').toLowerCase().trim();return allowed.find(a=>a===v)||fb;}
+function getOrCreateSuite(name){
+  if(!name)return(teamSuites()[0]||suites[0]||{id:'s0'}).id;
+  const ex=suites.find(s=>s.name.toLowerCase()===name.toLowerCase()&&s.teamId===activeTeamId);
+  if(ex)return ex.id;
+  const id='s'+Date.now()+Math.random().toString(36).slice(2,5);
+  suites.push({id,name,teamId:activeTeamId});return id;
+}
+function doImport(){
+  const mode=document.getElementById('importMode').value;
+  if(mode==='replace'){
+    testcases=testcases.filter(t=>t.teamId!==activeTeamId); // only remove current team's TCs
+    // Clear run cases for deleted TCs
+    plans.forEach(p=>(p.runs||[]).forEach(r=>{ r.cases=(r.cases||[]).filter(c=>testcases.find(t=>t.id===c.tcId)); }));
+  }
+  let added=0,updated=0,skipped=0;
+  importRows.forEach(row=>{
+    const title=cellVal(row,'title');if(!title){skipped++;return;}
+    const exId=cellVal(row,'id');
+    const id=exId||('TC-'+String(counter++).padStart(3,'0'));
+    const suiteId=getOrCreateSuite(cellVal(row,'suite'));
+    const rawS=cellVal(row,'steps');const rawE=cellVal(row,'expected');
+    const sparts=rawS?rawS.split('|').map(s=>s.trim()).filter(Boolean):[''];
+    const eparts=rawE?rawE.split('|').map(s=>s.trim()).filter(Boolean):[];
+    const tc={id,suiteId,teamId:activeTeamId,title,sprint:cellVal(row,'sprint'),
+      type:normalise(cellVal(row,'type'),TC_TYPES,'functional'),
+      priority:normalise(cellVal(row,'priority'),PRIORITIES,'medium'),
+      preconditions:cellVal(row,'preconditions'),
+      steps:sparts.map((a,i)=>({action:a,expected:eparts[i]||''})),
+      tags:cellVal(row,'tags')?cellVal(row,'tags').split(',').map(t=>t.trim()).filter(Boolean):[]};
+    if(mode==='upsert'){const idx=testcases.findIndex(t=>t.id===id);if(idx>=0){testcases[idx]=tc;updated++;}else{testcases.push(tc);added++;}}
+    else{testcases.push(tc);added++;}
+  });
+  saveData(`Imported ${added} TCs from Excel`);closeImportModal();renderSidebar();renderTCTable();
+  showToast(`Import done — ${[added&&`${added} added`,updated&&`${updated} updated`,skipped&&`${skipped} skipped`].filter(Boolean).join(', ')}`);
+}
+
+function downloadTemplate(){
+  const data=[['ID','Suite','Title','Type','Priority','Sprint','Preconditions','Steps','Expected Results','Tags'],
+    ['TC-001','Authentication','Login with valid credentials','smoke','high','Sprint 1','User account exists','Navigate to login page|Enter credentials|Click Login','Login page shown|Form accepts input|Dashboard loaded','@smoke,@auth'],
+    ['','Product search','Search by keyword','functional','medium','Sprint 2','Products exist','Type keyword|Press Enter','Results update|Products shown','']];
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:10},{wch:18},{wch:34},{wch:14},{wch:10},{wch:10},{wch:26},{wch:50},{wch:50},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws,'Test Cases');
+  XLSX.writeFile(wb,'testcase-template.xlsx');
+  showToast('Template downloaded');
+}
+function exportJSON(){
+  cleanData();
+  const blob=new Blob([JSON.stringify({teams,suites,testcases,plans},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='testcases.json';a.click();
+  showToast('JSON exported — '+testcases.length+' test cases');
+}
+
+function exportExcel(){
+  cleanData();
+  if(typeof XLSX==='undefined'){showToast('Excel library not loaded — try refreshing the page');return;}
+
+  const wb=XLSX.utils.book_new();
+
+  // ── Test Cases sheet ──────────────────────────────────
+  const tcHeaders=['ID','Team','Suite','Title','Type','Priority','Sprint',
+    'Preconditions','Acceptance Criteria','Steps','Expected Results','Tags'];
+  const tcRows=testcases.map(tc=>{
+    const team=(teams.find(t=>t.id===tc.teamId)||{name:''}).name;
+    const suite=(suites.find(s=>s.id===tc.suiteId)||{name:''}).name;
+    const steps=(tc.steps||[]).map(s=>s.action).join(' | ');
+    const expected=(tc.steps||[]).map(s=>s.expected).join(' | ');
+    return[
+      tc.id, team, suite, tc.title, tc.type||'', tc.priority||'',
+      tc.sprint||'', tc.preconditions||'', tc.acceptance||'',
+      steps, expected, (tc.tags||[]).join(', ')
+    ];
+  });
+  const tcWS=XLSX.utils.aoa_to_sheet([tcHeaders,...tcRows]);
+  tcWS['!cols']=[
+    {wch:10},{wch:14},{wch:18},{wch:36},{wch:14},{wch:10},{wch:10},
+    {wch:28},{wch:28},{wch:50},{wch:50},{wch:18}
+  ];
+  XLSX.utils.book_append_sheet(wb,tcWS,'Test Cases');
+
+  // ── Suites sheet ──────────────────────────────────────
+  const suiteHeaders=['Suite ID','Suite Name','Team','Test Case Count'];
+  const suiteRows=suites.map(s=>{
+    const team=(teams.find(t=>t.id===s.teamId)||{name:''}).name;
+    const cnt=testcases.filter(tc=>tc.suiteId===s.id).length;
+    return[s.id, s.name, team, cnt];
+  });
+  const suiteWS=XLSX.utils.aoa_to_sheet([suiteHeaders,...suiteRows]);
+  suiteWS['!cols']=[{wch:14},{wch:24},{wch:16},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,suiteWS,'Suites');
+
+  // ── Teams sheet ───────────────────────────────────────
+  const teamHeaders=['Team ID','Team Name','Test Cases','Suites'];
+  const teamRows=teams.map(t=>{
+    const tcs=testcases.filter(tc=>tc.teamId===t.id).length;
+    const sus=suites.filter(s=>s.teamId===t.id).length;
+    return[t.id, t.name, tcs, sus];
+  });
+  const teamWS=XLSX.utils.aoa_to_sheet([teamHeaders,...teamRows]);
+  teamWS['!cols']=[{wch:14},{wch:20},{wch:14},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,teamWS,'Teams');
+
+  // ── Summary sheet ─────────────────────────────────────
+  const now=new Date().toLocaleString();
+  const summaryData=[
+    ['Test Manager Export'],
+    ['Exported at', now],
+    [''],
+    ['Total teams',    teams.length],
+    ['Total suites',   suites.length],
+    ['Total test cases',testcases.length],
+    [''],
+    ['By type'],
+    ...['smoke','sanity','regression','functional','exploratory'].map(type=>[
+      type.charAt(0).toUpperCase()+type.slice(1),
+      testcases.filter(tc=>tc.type===type).length
+    ]),
+    [''],
+    ['By priority'],
+    ...['high','medium','low'].map(p=>[
+      p.charAt(0).toUpperCase()+p.slice(1),
+      testcases.filter(tc=>tc.priority===p).length
+    ]),
+  ];
+  const sumWS=XLSX.utils.aoa_to_sheet(summaryData);
+  sumWS['!cols']=[{wch:22},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,sumWS,'Summary');
+
+  const fileName='testcases-'+new Date().toISOString().slice(0,10)+'.xlsx';
+  XLSX.writeFile(wb,fileName);
+  showToast('Excel exported — '+testcases.length+' test cases');
+}
+function exportHTML(){
+  cleanData();
+  // Save session changes as one snapshot
+  if(_sessionChanges.length>0){
+    saveVersion(null,_sessionChanges);
+    _sessionChanges=[];
+  }
+  const allVersions=loadVersions();
+
+  // Build injection block using var to avoid duplicate declaration errors on re-save
+  const injBlock='/* TCM_INJECTED_START */\n'
+    +'var INJECTED='+JSON.stringify({teams,suites,testcases,plans,counter,planCounter,runCounter,teamCounter})+';\n'
+    +'var INJECTED_VERSIONS='+JSON.stringify(allVersions)+';\n'
+    +'var INJECTED_DELETED='+JSON.stringify([...deletedIds])+';\n'
+    +'/* TCM_INJECTED_END */';
+
+  let src=document.documentElement.outerHTML;
+
+  // Remove any previous injection block first so re-saving never duplicates
+  src=src.replace(/\/\* TCM_INJECTED_START \*\/[\s\S]*?\/\* TCM_INJECTED_END \*\//,'');
+
+  // Inject just before the loadData call
+  src=src.replace(
+    'let {teams,suites,testcases,plans,counter,planCounter,runCounter,teamCounter}=loadData();',
+    injBlock+'\nlet {teams,suites,testcases,plans,counter,planCounter,runCounter,teamCounter}=loadData();'
+  );
+
+  const blob=new Blob([src],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='testcase-manager.html';a.click();
+  showToast('HTML saved — '+allVersions.length+' snapshot'+(allVersions.length!==1?'s':'')+' included');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  const m=document.getElementById('toast-msg');
+  if(m) m.textContent=msg; else t.firstChild.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+function dismissToast(){
+  const t=document.getElementById('toast');
+  clearTimeout(t._t);
+  t.classList.remove('show');
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ══════════════════════════════
+   USERNAME
+══════════════════════════════ */
+const USER_KEY='tcm_username';
+
+function getUsername(){
+  return localStorage.getItem(USER_KEY)||'';
+}
+
+function showUserScreen(){
+  document.getElementById('userScreen').classList.add('active');
+  document.getElementById('teamScreen').style.display='none';
+  document.getElementById('appShell').style.display='none';
+  const existing=getUsername();
+  const input=document.getElementById('userNameInput');
+  input.value=existing;
+  // Show welcome back note if name already set
+  const note=document.getElementById('userWelcomeNote');
+  const nameEl=document.getElementById('userWelcomeName');
+  if(existing){
+    note.style.display='block';
+    nameEl.textContent=existing;
+  } else {
+    note.style.display='none';
+  }
+  // Focus input
+  setTimeout(()=>input.focus(),100);
+}
+
+function continueToApp(){
+  const input=document.getElementById('userNameInput');
+  const name=input.value.trim();
+  const errEl=document.getElementById('userErr');
+  if(!name){
+    input.classList.add('error');
+    errEl.classList.add('show');
+    input.focus();
+    return;
+  }
+  input.classList.remove('error');
+  errEl.classList.remove('show');
+  // Save name
+  localStorage.setItem(USER_KEY, name);
+  updateUserDisplay(name);
+  // Go to team screen
+  document.getElementById('userScreen').classList.remove('active');
+  renderTeamScreen();
+}
+
+function setUsername(){
+  // From topbar — go back to user screen to change name
+  showUserScreen();
+}
+
+function updateUserDisplay(name){
+  const el=document.getElementById('userDisplay');
+  if(!el) return;
+  el.textContent=name||'Set name';
+  el.style.color=name?'var(--text)':'var(--text3)';
+  const btn=document.getElementById('userBtn');
+  if(btn) btn.title=name?'Signed in as '+name+' — click to change':'Set your name';
+}
+
+function initUsername(){
+  updateUserDisplay(getUsername());
+}
+
+/* ══════════════════════════════
+   VERSION HISTORY
+══════════════════════════════ */
+const VH_KEY   = 'tcm_versions_v1';
+const VH_MAX   = 50;   // max snapshots to keep
+let   vhPreview = null; // currently previewed version
+
+function saveVersion(label, changeDesc){
+  cleanData();
+  const changes = Array.isArray(changeDesc) ? changeDesc
+    : (changeDesc ? [changeDesc] : []);
+  const snap={
+    ts:         Date.now(),
+    label:      label||null,
+    changes:    changes,
+    user:       getUsername()||null,
+    teams:      JSON.parse(JSON.stringify(teams)),
+    suites:     JSON.parse(JSON.stringify(suites)),
+    testcases:  JSON.parse(JSON.stringify(testcases)),
+    plans:      JSON.parse(JSON.stringify(plans)),
+    stats:{
+      teams:     teams.length,
+      suites:    suites.length,
+      testcases: testcases.length,
+      plans:     plans.length,
+    }
+  };
+  let versions=loadVersions();
+  versions.unshift(snap);
+  if(versions.length>VH_MAX) versions=versions.slice(0,VH_MAX);
+  try{
+    localStorage.setItem(VH_KEY, JSON.stringify(versions));
+  }catch(e){
+    versions=versions.slice(0, Math.floor(VH_MAX/2));
+    try{ localStorage.setItem(VH_KEY, JSON.stringify(versions)); }catch(e2){}
+  }
+}
+
+function loadVersions(){
+  // Merge: localStorage (this machine's sessions) + INJECTED_VERSIONS (baked in from sharer)
+  let local=[];
+  let injected=[];
+  try{ const r=localStorage.getItem(VH_KEY); if(r) local=JSON.parse(r); }catch(e){}
+  try{ if(typeof INJECTED_VERSIONS!=='undefined') injected=INJECTED_VERSIONS; }catch(e){}
+  // Merge by timestamp — deduplicate, sort newest first
+  const all=[...local,...injected];
+  const seen=new Set();
+  return all.filter(v=>{ if(seen.has(v.ts)) return false; seen.add(v.ts); return true; })
+    .sort((a,b)=>b.ts-a.ts)
+    .slice(0,VH_MAX);
+}
+
+function openVersionHistory(){
+  vhPreview=null;
+  document.getElementById('versionModal').classList.add('open');
+  renderVersionList();
+  document.getElementById('versionDetail').innerHTML=
+    `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--text3)">
+      <i class="ti ti-history" style="font-size:32px"></i>
+      <span>Select a version to preview</span>
+    </div>`;
+  document.getElementById('versionActions').style.display='none';
+}
+
+function closeVersionModal(){
+  document.getElementById('versionModal').classList.remove('open');
+}
+
+function renderVersionList(){
+  const versions=loadVersions();
+  const list=document.getElementById('versionList');
+  const info=document.getElementById('versionStorageInfo');
+  info.textContent=versions.length+' snapshot'+(versions.length!==1?'s':'');
+
+  if(!versions.length){
+    list.innerHTML='<div style="padding:12px;font-size:12px;color:var(--text3);text-align:center">No snapshots yet.<br>Snapshots are created automatically when you save.</div>';
+    return;
+  }
+  list.innerHTML='';
+  versions.forEach((v,i)=>{
+    const d=new Date(v.ts);
+    const dateStr=d.toLocaleDateString();
+    const timeStr=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    const card=document.createElement('div');
+    card.className='v-item'+(vhPreview&&vhPreview.ts===v.ts?' active':'');
+    const changes = v.changes || (v.changeDesc ? [v.changeDesc] : []);
+    const changesSummary = changes.length === 0 ? ''
+      : changes.length === 1 ? changes[0]
+      : `${changes[0]} +${changes.length-1} more`;
+    card.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+        <div class="v-item-time">${timeStr}</div>
+        <span class="${v.label?'v-item-manual':'v-item-auto'}">${v.label||'auto'}</span>
+      </div>
+      ${changesSummary?`<div style="font-size:12px;font-weight:500;color:var(--text);margin-top:3px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(changes.join('\n'))}">${esc(changesSummary)}</div>`:''}
+      <div class="v-item-meta">${dateStr} &middot; ${v.stats.testcases} TC &middot; ${v.stats.suites} suites</div>
+      ${v.user?`<div style="font-size:11px;color:var(--info-text);margin-top:2px;display:flex;align-items:center;gap:3px"><i class="ti ti-user" style="font-size:11px"></i>${esc(v.user)}</div>`:''}`;
+    card.onclick=()=>previewVersion(v,i);
+    list.appendChild(card);
+  });
+}
+
+function previewVersion(v,idx){
+  vhPreview=v;
+  // update active state
+  document.querySelectorAll('.v-item').forEach((el,i)=>el.classList.toggle('active',i===idx));
+  document.getElementById('versionActions').style.display='flex';
+
+  const d=new Date(v.ts);
+  const versions=loadVersions();
+
+  // diff against current
+  const curr={testcases:testcases.length,suites:suites.length,teams:teams.length,plans:plans.length};
+  const snap=v.stats;
+
+  // find added/removed TCs vs current
+  const currIds=new Set(testcases.map(t=>t.id));
+  const snapIds=new Set(v.testcases.map(t=>t.id));
+  const added  =v.testcases.filter(t=>!currIds.has(t.id));
+  const removed=testcases.filter(t=>!snapIds.has(t.id));
+  const modified=v.testcases.filter(t=>{
+    const cur=testcases.find(c=>c.id===t.id);
+    return cur && JSON.stringify(cur)!==JSON.stringify(t);
+  });
+
+  const changes = v.changes || (v.changeDesc ? [v.changeDesc] : []);
+
+  let html=`
+    <div style="margin-bottom:14px">
+      <div style="font-size:15px;font-weight:500;margin-bottom:6px">${d.toLocaleDateString()} at ${d.toLocaleTimeString()}</div>
+      ${v.user?`<div style="font-size:12px;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:5px"><i class="ti ti-user" style="color:var(--text3)"></i> <strong>${esc(v.user)}</strong></div>`:''}
+      ${v.label?`<div style="font-size:12px;color:var(--warn-text);margin-bottom:8px"><i class="ti ti-tag"></i> ${esc(v.label)}</div>`:''}
+    </div>
+
+    ${changes.length>0?`
+    <div class="section-label" style="margin-bottom:10px">Changes in this session (${changes.length})</div>
+    <div style="border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px">
+      ${changes.map((ch,i)=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:${i<changes.length-1?'0.5px solid var(--border)':'none'};font-size:13px">
+          <span style="width:20px;height:20px;border-radius:50%;background:var(--info-bg);color:var(--info-text);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</span>
+          <span style="flex:1">${esc(ch)}</span>
+        </div>`).join('')}
+    </div>`:
+    `<div style="font-size:12px;color:var(--text3);margin-bottom:16px;padding:10px;background:var(--bg2);border-radius:var(--r)">No specific change descriptions recorded for this snapshot.</div>`}
+
+    <div class="section-label" style="margin-bottom:10px">Snapshot stats</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+        <span class="v-stat" style="background:var(--bg2);color:var(--text2)"><i class="ti ti-test-pipe"></i> ${snap.testcases} test cases</span>
+        <span class="v-stat" style="background:var(--bg2);color:var(--text2)"><i class="ti ti-folder"></i> ${snap.suites} suites</span>
+        <span class="v-stat" style="background:var(--bg2);color:var(--text2)"><i class="ti ti-users"></i> ${snap.teams} teams</span>
+        <span class="v-stat" style="background:var(--bg2);color:var(--text2)"><i class="ti ti-clipboard-list"></i> ${snap.plans} plans</span>
+      </div>
+
+    <div class="section-label" style="margin-bottom:10px">Diff vs current</div>
+    <div style="margin-bottom:14px">
+      ${diff('Test cases', snap.testcases, curr.testcases)}
+      ${diff('Suites',     snap.suites,    curr.suites)}
+      ${diff('Teams',      snap.teams,     curr.teams)}
+      ${diff('Plans',      snap.plans,     curr.plans)}
+    </div>`;
+
+  if(added.length||removed.length||modified.length){
+    html+=`<div class="section-label" style="margin-bottom:10px">Test case detail</div><div class="v-diff-row"><div class="v-diff-label">Changes</div><div>`;
+    if(added.length)   html+=`<span class="v-added">+${added.length} in this snapshot not in current</span>`;
+    if(removed.length) html+=`<span class="v-removed">-${removed.length} in current not in snapshot</span>`;
+    if(modified.length)html+=`<span style="color:var(--warn-text);background:var(--warn-bg);padding:2px 6px;border-radius:4px;margin-right:4px">~${modified.length} modified</span>`;
+    html+=`</div></div>`;
+
+    if(added.length){
+      html+=`<div class="section-label" style="margin:10px 0 6px">In snapshot only</div>`;
+      added.slice(0,10).forEach(t=>{
+        html+=`<div class="v-diff-row"><div class="v-diff-label tc-id">${t.id}</div><div class="v-added">${esc(t.title)}</div></div>`;
+      });
+      if(added.length>10)html+=`<div style="font-size:11px;color:var(--text3);padding:4px 0">… and ${added.length-10} more</div>`;
+    }
+    if(removed.length){
+      html+=`<div class="section-label" style="margin:10px 0 6px">In current only (would be removed)</div>`;
+      removed.slice(0,10).forEach(t=>{
+        html+=`<div class="v-diff-row"><div class="v-diff-label tc-id">${t.id}</div><div class="v-removed">${esc(t.title)}</div></div>`;
+      });
+      if(removed.length>10)html+=`<div style="font-size:11px;color:var(--text3);padding:4px 0">… and ${removed.length-10} more</div>`;
+    }
+  } else {
+    html+=`<div style="font-size:12px;color:var(--success-text);padding:8px 0"><i class="ti ti-check"></i> No differences in test cases between this snapshot and current data</div>`;
+  }
+
+  document.getElementById('versionDetail').innerHTML=html;
+}
+
+function diff(label,snapVal,currVal){
+  const delta=snapVal-currVal;
+  const sign=delta>0?'+':delta<0?'':' ';
+  const col=delta>0?'var(--success-text)':delta<0?'var(--danger-text)':'var(--text3)';
+  return `<div class="v-diff-row">
+    <div class="v-diff-label">${label}</div>
+    <div>
+      <span class="v-unchanged">${snapVal}</span>
+      ${delta!==0?`<span style="color:${col};font-size:11px">(${sign}${delta} vs current)</span>`:'<span style="font-size:11px;color:var(--text3)">same as current</span>'}
+    </div>
+  </div>`;
+}
+
+function restoreVersion(){
+  if(!vhPreview)return;
+  if(!confirm(`Restore to snapshot from ${new Date(vhPreview.ts).toLocaleString()}?\n\nThis will replace your current data. A snapshot of the current state will be saved first.`))return;
+  // Save current as a manual snapshot before restoring
+  saveVersion('before restore', [`Restored from snapshot: ${new Date(vhPreview.ts).toLocaleString()}${vhPreview.user?' by '+vhPreview.user:''}`]);
+  teams     =JSON.parse(JSON.stringify(vhPreview.teams));
+  suites    =JSON.parse(JSON.stringify(vhPreview.suites));
+  testcases =JSON.parse(JSON.stringify(vhPreview.testcases));
+  plans     =JSON.parse(JSON.stringify(vhPreview.plans));
+  _sessionChanges=[]; // clear session log — restored state is the new baseline
+  deletedIds=new Set(); // clear deletion log — snapshot TCs should be visible
+  saveDeletedIds();
+  saveData('Restored from version snapshot');
+  closeVersionModal();
+  activeSuiteId=null;selectedTC=null;editingTC=null;activePlanId=null;
+  closeDetail();
+  renderSidebar();renderTCTable();renderPlansList();
+  showToast('Version restored');
+}
+
+function downloadVersion(){
+  if(!vhPreview)return;
+  const blob=new Blob([JSON.stringify(vhPreview,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='snapshot-'+new Date(vhPreview.ts).toISOString().slice(0,19).replace(/[T:]/g,'-')+'.json';
+  a.click();
+  showToast('Snapshot downloaded');
+}
+
+function clearAllVersions(){
+  if(!confirm('Delete all version history snapshots?'))return;
+  localStorage.removeItem(VH_KEY);
+  renderVersionList();
+  document.getElementById('versionDetail').innerHTML=
+    `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--text3)">
+      <i class="ti ti-history" style="font-size:32px"></i>
+      <span>No snapshots</span>
+    </div>`;
+  document.getElementById('versionActions').style.display='none';
+  vhPreview=null;
+  showToast('Version history cleared');
+}
+(function(){
+  const handle = document.getElementById('sidebarResizeHandle');
+  const panel  = document.getElementById('sidebarPanel');
+  if(!handle || !panel) return;
+
+  handle.addEventListener('mousedown', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    var startX = e.clientX;
+    var startW = panel.offsetWidth;
+    var moved  = false;
+    handle.classList.add('dragging');
+    document.body.style.cursor    = 'col-resize';
+    document.body.style.userSelect= 'none';
+
+    function onMove(e){
+      moved = true;
+      var newW = Math.min(Math.max(startW + (e.clientX - startX), 160), 400);
+      panel.style.width = newW + 'px';
+    }
+    function onUp(){
+      handle.classList.remove('dragging');
+      document.body.style.cursor    = '';
+      document.body.style.userSelect= '';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup',   onUp);
+      // Only block the single immediate click if we actually dragged
+      if(moved){
+        function once(e){ e.stopPropagation(); e.preventDefault(); document.removeEventListener('click', once, true); }
+        document.addEventListener('click', once, true);
+      }
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
+  });
+})();
+
+/* ── RESIZABLE DETAIL PANEL ── */
+(function(){
+  const handle = document.getElementById('dpResizeHandle');
+  const panel  = document.getElementById('tcDetailPanel');
+  if(!handle || !panel) return;
+
+  handle.addEventListener('mousedown', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    var startX = e.clientX;
+    var startW = panel.offsetWidth;
+    var moved  = false;
+    handle.classList.add('dragging');
+    document.body.style.cursor    = 'col-resize';
+    document.body.style.userSelect= 'none';
+
+    function onMove(e){
+      moved = true;
+      var dx   = startX - e.clientX;
+      var newW = Math.min(Math.max(startW + dx, 260), window.innerWidth * 0.7);
+      panel.style.width = newW + 'px';
+    }
+    function onUp(){
+      handle.classList.remove('dragging');
+      document.body.style.cursor    = '';
+      document.body.style.userSelect= '';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup',   onUp);
+      // Only block the single immediate click if we actually dragged
+      if(moved){
+        function once(e){ e.stopPropagation(); e.preventDefault(); document.removeEventListener('click', once, true); }
+        document.addEventListener('click', once, true);
+      }
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
+  });
+})();
+
+// Boot: show username screen first (mandatory), then team picker
+initUsername();
+showUserScreen();
+
+/* ════════════════════════════════════════════════════════
+   GOOGLE DRIVE INTEGRATION
+   Credentials are pre-configured. The shared folder ID below
+   ensures ALL users save into the same shared Drive folder.
+   ════════════════════════════════════════════════════════ */
+const GD_CLIENT_ID     = '55284085448-btiandekdgpcpkt0i2ur3qbr9e2l4t2p.apps.googleusercontent.com';
+const GD_API_KEY       = 'AIzaSyA3f0m2fEhwGJCfdbPVT54-nGvPHxYc_ME';
+const GD_SCOPE         = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly';
+const GD_FILENAME      = 'testcase-manager.html';
+
+// ▼▼▼ SHARED FOLDER ID ▼▼▼
+// Paste your shared Google Drive folder ID here.
+// Get it from the folder URL: drive.google.com/drive/folders/FOLDER_ID
+// All users will save into this folder automatically.
+const GD_SHARED_FOLDER = '105GVdq0Z8sn82eBL_GvSXS_qhdNjL_vR';
+
+let _gdTokenClient     = null;
+let _gdAccessToken     = null;
+let _gdUser            = null;
+let _gdMode            = 'save';
+let _gdSelectedFileId  = null;
+let _gdSelectedFileName= null;
+let _gdFiles           = [];
+
+/* ── Init ── */
+function gdInit(){
+  if(!window.google || !window.google.accounts){ setTimeout(gdInit,600); return; }
+  _gdTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GD_CLIENT_ID,
+    scope: GD_SCOPE,
+    callback: gdHandleToken,
+  });
+  const saved = sessionStorage.getItem('gd_token');
+  if(saved){ _gdAccessToken = saved; gdFetchUserInfo(); }
+  else { gdUpdateUI(); }
+}
+
+function gdHandleToken(resp){
+  if(resp.error){ showToast('Google sign-in failed: '+resp.error); return; }
+  _gdAccessToken = resp.access_token;
+  sessionStorage.setItem('gd_token', _gdAccessToken);
+  gdFetchUserInfo();
+  if(document.getElementById('driveModal').classList.contains('open')){
+    renderDriveModalBody();
+    gdLoadFileList();
+  }
+}
+
+function gdFetchUserInfo(){
+  fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+_gdAccessToken}})
+    .then(r=>r.json()).then(info=>{
+      _gdUser={name:info.name,email:info.email,picture:info.picture};
+      gdUpdateUI();
+    }).catch(()=>gdUpdateUI());
+}
+
+function gdUpdateUI(){
+  const dot    = document.getElementById('gdriveDot');
+  const sub    = document.getElementById('gdriveDdSub');
+  const userEl = document.getElementById('gdriveDdUser');
+  if(!dot) return;
+  if(_gdUser){
+    dot.className='dot ok';
+    if(sub) sub.textContent='Signed in as '+_gdUser.name;
+    if(userEl){
+      userEl.style.display='flex';
+      userEl.innerHTML=`
+        ${_gdUser.picture?`<img src="${_gdUser.picture}" alt="">`:'<i class="ti ti-user-circle" style="font-size:22px;color:var(--text3)"></i>'}
+        <div class="gdrive-dd-user-info">
+          <div class="gdrive-dd-user-name">${esc(_gdUser.name)}</div>
+          <div class="gdrive-dd-user-email">${esc(_gdUser.email)}</div>
+        </div>
+        <button class="gdrive-dd-signout" onclick="gdSignOut()">Sign out</button>`;
+    }
+  } else {
+    dot.className='dot';
+    if(sub) sub.textContent='Not signed in';
+    if(userEl) userEl.style.display='none';
+  }
+}
+
+function gdSignIn(){
+  if(!_gdTokenClient){ showToast('Google APIs loading — retry in a moment'); gdInit(); return; }
+  if(_gdAccessToken){ gdLoadFileList(); return; }
+  _gdTokenClient.requestAccessToken({prompt:''});
+}
+
+function gdSignOut(){
+  if(_gdAccessToken) google.accounts.oauth2.revoke(_gdAccessToken,()=>{});
+  _gdAccessToken=null; _gdUser=null;
+  sessionStorage.removeItem('gd_token');
+  closeDriveDropdown(); gdUpdateUI();
+  if(document.getElementById('driveModal').classList.contains('open')) renderDriveModalBody();
+}
+
+/* ── Dropdown ── */
+function toggleDriveDropdown(e){
+  e.stopPropagation();
+  const menu=document.getElementById('gdriveDdMenu');
+  const wasOpen=menu.classList.contains('open');
+  closeAllDropdowns();
+  if(!wasOpen) menu.classList.add('open');
+}
+function closeDriveDropdown(){
+  const m=document.getElementById('gdriveDdMenu');
+  if(m) m.classList.remove('open');
+}
+
+/* ── Modal ── */
+function openDriveModal(mode){
+  _gdMode=mode;
+  _gdSelectedFileId=null; _gdSelectedFileName=null;
+  document.getElementById('driveModalTitle').innerHTML = mode==='save'
+    ? '<i class="ti ti-brand-google-drive" style="color:#4285F4"></i> Save to Google Drive'
+    : '<i class="ti ti-brand-google-drive" style="color:#4285F4"></i> Load from Google Drive';
+  document.getElementById('driveModal').classList.add('open');
+  renderDriveModalBody();
+  if(_gdAccessToken) gdLoadFileList();
+}
+function closeDriveModal(){
+  document.getElementById('driveModal').classList.remove('open');
+  _gdSelectedFileId=null;
+}
+
+/* ── Modal body ── */
+function renderDriveModalBody(){
+  const body=document.getElementById('driveModalBody');
+  const foot=document.getElementById('driveModalFoot');
+  const actionBtn=document.getElementById('driveModalAction');
+
+  if(!_gdAccessToken){
+    body.innerHTML=`
+      <div class="gdrive-sign-in-wrap">
+        <i class="ti ti-brand-google-drive" style="font-size:52px;color:#4285F4"></i>
+        <p>Sign in with your Google account to sync test cases with the shared Drive folder. All team members see the same data.</p>
+        <button class="btn primary" style="padding:10px 28px;font-size:13px" onclick="gdSignIn()">
+          <i class="ti ti-brand-google"></i>&nbsp; Sign in with Google
+        </button>
+      </div>`;
+    foot.style.display='none';
+    return;
+  }
+
+  foot.style.display='flex';
+  actionBtn.disabled=true;
+  actionBtn.innerHTML=_gdMode==='save'
+    ?'<i class="ti ti-cloud-upload"></i> Upload to Drive'
+    :'<i class="ti ti-cloud-download"></i> Load this file';
+
+  const userRow=_gdUser?`
+    <div class="gdrive-user-row">
+      ${_gdUser.picture?`<img src="${_gdUser.picture}" alt="">`:'<i class="ti ti-user-circle" style="font-size:22px"></i>'}
+      <span><strong>${esc(_gdUser.name)}</strong> — ${esc(_gdUser.email)}</span>
+      <button class="btn sm danger-soft" style="margin-left:auto" onclick="gdSignOut()">Sign out</button>
+    </div>`:'';
+
+  const folderNote = GD_SHARED_FOLDER
+    ? `<div class="gdrive-folder-row"><i class="ti ti-folder-filled"></i> Shared team folder is configured — all saves go here automatically.</div>`
+    : `<div class="gdrive-info-box"><i class="ti ti-info-circle"></i> <strong>Tip:</strong> Set <code>GD_SHARED_FOLDER</code> in the script to a shared Drive folder ID so all teammates save to the same place automatically.</div>`;
+
+  if(_gdMode==='save'){
+    body.innerHTML=userRow+folderNote+`
+      <div>
+        <div class="gdrive-section-label">File name</div>
+        <input id="gdSaveFileName" type="text" value="${GD_FILENAME}"
+          style="width:100%;font-size:13px;padding:7px 10px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);outline:none;box-sizing:border-box"
+          oninput="gdCheckSaveReady()">
+      </div>
+      <div>
+        <div class="gdrive-section-label">Existing files — select to overwrite</div>
+        <div class="gdrive-file-list" id="gdFileList">
+          <div class="gdrive-empty"><span class="gdrive-spinner"></span>&nbsp; Loading…</div>
+        </div>
+      </div>
+      <div class="gdrive-info-box">
+        <i class="ti ti-info-circle"></i> Uploads the HTML with all test cases baked in. Share the Drive link → teammates download → open in browser → Load from Drive to sync.
+      </div>`;
+    gdCheckSaveReady();
+  } else {
+    body.innerHTML=userRow+`
+      <div>
+        <div class="gdrive-section-label">Select a file to load</div>
+        <div class="gdrive-file-list" id="gdFileList">
+          <div class="gdrive-empty"><span class="gdrive-spinner"></span>&nbsp; Loading…</div>
+        </div>
+      </div>
+      <div class="gdrive-info-box">
+        <i class="ti ti-info-circle"></i> Merges Drive test cases with your local data. Your local-only test cases are kept.
+      </div>`;
+  }
+}
+
+/* ── File list ── */
+function gdLoadFileList(){
+  if(!_gdAccessToken) return;
+  // Build query — search shared folder if configured, else all Drive
+  let qParts = ["mimeType='text/html'", "trashed=false"];
+  if(GD_SHARED_FOLDER) qParts.push(`'${GD_SHARED_FOLDER}' in parents`);
+  const q = encodeURIComponent(qParts.join(' and '));
+  fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime+desc&pageSize=50`,{
+    headers:{Authorization:'Bearer '+_gdAccessToken}
+  }).then(r=>{
+    if(r.status===401){ _gdAccessToken=null; sessionStorage.removeItem('gd_token'); renderDriveModalBody(); return null; }
+    return r.json();
+  }).then(data=>{
+    if(!data) return;
+    _gdFiles=data.files||[];
+    renderFileList();
+  }).catch(err=>{
+    const list=document.getElementById('gdFileList');
+    if(list) list.innerHTML=`<div class="gdrive-empty" style="color:var(--danger-text)"><i class="ti ti-alert-triangle"></i><br>Failed to load: ${esc(err.message||'unknown error')}</div>`;
+  });
+}
+
+function renderFileList(){
+  const list=document.getElementById('gdFileList');
+  if(!list) return;
+  if(!_gdFiles.length){
+    list.innerHTML=`<div class="gdrive-empty"><i class="ti ti-file-off" style="font-size:26px;display:block;margin-bottom:8px"></i>No files found${GD_SHARED_FOLDER?' in the shared folder':' in your Drive'}.<br><span style="font-size:11px">Use "Save to Drive" first to create one.</span></div>`;
+    return;
+  }
+  list.innerHTML='';
+  _gdFiles.forEach(f=>{
+    const row=document.createElement('div');
+    row.className='gdrive-file-row'+(_gdSelectedFileId===f.id?' selected':'');
+    const modified=f.modifiedTime?new Date(f.modifiedTime).toLocaleString():'';
+    const size=f.size?Math.round(f.size/1024)+' KB':'';
+    row.innerHTML=`
+      <i class="ti ti-file-code gdrive-file-icon"></i>
+      <div class="gdrive-file-info">
+        <div class="gdrive-file-name">${esc(f.name)}</div>
+        <div class="gdrive-file-meta">${modified}${size?' · '+size:''}</div>
+      </div>
+      ${_gdSelectedFileId===f.id?'<i class="ti ti-check" style="color:var(--info-text);font-size:16px"></i>':''}`;
+    row.onclick=()=>gdSelectFile(f.id,f.name);
+    list.appendChild(row);
+  });
+}
+
+function gdSelectFile(id,name){
+  _gdSelectedFileId=id; _gdSelectedFileName=name;
+  renderFileList();
+  if(_gdMode==='save'){ const inp=document.getElementById('gdSaveFileName'); if(inp) inp.value=name; }
+  const btn=document.getElementById('driveModalAction');
+  if(btn) btn.disabled=false;
+}
+
+function gdCheckSaveReady(){
+  const btn=document.getElementById('driveModalAction');
+  const inp=document.getElementById('gdSaveFileName');
+  // Enable as long as there's a filename — don't require selecting an existing file
+  if(btn) btn.disabled=!(inp&&inp.value.trim());
+}
+
+/* ── Action ── */
+function doDriveAction(){ _gdMode==='save'?doSaveToDrive():doLoadFromDrive(); }
+
+/* ── SAVE ── */
+function doSaveToDrive(){
+  const inp=document.getElementById('gdSaveFileName');
+  const filename=(inp?inp.value.trim():'')||GD_FILENAME;
+  const btn=document.getElementById('driveModalAction');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="gdrive-spinner"></span> Uploading…';}
+
+  cleanData();
+  if(_sessionChanges.length>0){saveVersion(null,_sessionChanges);_sessionChanges=[];}
+  const allVersions=loadVersions();
+  const injBlock='/* TCM_INJECTED_START */\n'
+    +'var INJECTED='+JSON.stringify({teams,suites,testcases,plans,counter,planCounter,runCounter,teamCounter})+';\n'
+    +'var INJECTED_VERSIONS='+JSON.stringify(allVersions)+';\n'
+    +'var INJECTED_DELETED='+JSON.stringify([...deletedIds])+';\n'
+    +'/* TCM_INJECTED_END */';
+  let src=document.documentElement.outerHTML;
+  src=src.replace(/\/\* TCM_INJECTED_START \*\/[\s\S]*?\/\* TCM_INJECTED_END \*\//,'');
+  src=src.replace(
+    'let {teams,suites,testcases,plans,counter,planCounter,runCounter,teamCounter}=loadData();',
+    injBlock+'\nlet {teams,suites,testcases,plans,counter,planCounter,runCounter,teamCounter}=loadData();'
+  );
+  const blob=new Blob([src],{type:'text/html'});
+
+  // If overwriting a selected file, go straight to upload
+  if(_gdSelectedFileId){ gdUploadFile(blob,filename,_gdSelectedFileId,btn); return; }
+
+  // Otherwise check for duplicate name in the target folder
+  let dupParts = [`name='${filename}'`, "mimeType='text/html'", "trashed=false"];
+  if(GD_SHARED_FOLDER) dupParts.push(`'${GD_SHARED_FOLDER}' in parents`);
+  const q = encodeURIComponent(dupParts.join(' and '));
+  fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)&pageSize=1`,{
+    headers:{Authorization:'Bearer '+_gdAccessToken}
+  }).then(r=>r.json()).then(data=>{
+    const existId=data.files&&data.files.length?data.files[0].id:null;
+    gdUploadFile(blob,filename,existId,btn);
+  }).catch(()=>gdUploadFile(blob,filename,null,btn));
+}
+
+function gdUploadFile(blob,filename,existingId,btn){
+  // Always save into the shared folder if configured, regardless of which account is uploading
+  const parents = GD_SHARED_FOLDER ? [GD_SHARED_FOLDER] : [];
+  const meta=JSON.stringify(existingId
+    ?{name:filename}
+    :{name:filename,mimeType:'text/html',parents});
+  const form=new FormData();
+  form.append('metadata',new Blob([meta],{type:'application/json'}));
+  form.append('file',blob);
+  const method=existingId?'PATCH':'POST';
+  const url=existingId
+    ?`https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`
+    :'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+  fetch(url,{method,headers:{Authorization:'Bearer '+_gdAccessToken},body:form})
+    .then(r=>{
+      if(r.status===403) throw new Error('403 — You do not have write permission to this file or folder. Ask the file owner to share the folder with Editor access.');
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    })
+    .then(f=>{
+      closeDriveModal(); gdUpdateUI();
+      showToast('✓ Saved to Google Drive: '+f.name);
+    }).catch(err=>{
+      showToast('Upload failed: '+(err.message||'unknown error'));
+      if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-cloud-upload"></i> Upload to Drive';}
+    });
+}
+
+/* ── LOAD ── */
+function doLoadFromDrive(){
+  if(!_gdSelectedFileId){showToast('Select a file first');return;}
+  const btn=document.getElementById('driveModalAction');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="gdrive-spinner"></span> Loading…';}
+  fetch(`https://www.googleapis.com/drive/v3/files/${_gdSelectedFileId}?alt=media`,{
+    headers:{Authorization:'Bearer '+_gdAccessToken}
+  }).then(r=>{
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.text();
+  }).then(html=>{
+    const match=html.match(/var INJECTED=(\{[\s\S]*?\});/);
+    const delMatch=html.match(/var INJECTED_DELETED=(\[[\s\S]*?\]);/);
+    if(!match) throw new Error('No test case data found. Make sure the file was saved from Test Manager.');
+    const driveData=JSON.parse(match[1]);
+    const driveDeleted=delMatch?JSON.parse(delMatch[1]):[];
+    if(!confirm(`Load "${_gdSelectedFileName}" from Drive?\n\nThis merges Drive test cases with your local data. Local-only test cases are kept.`)){
+      if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-cloud-download"></i> Load this file';} return;
+    }
+    driveDeleted.forEach(id=>deletedIds.add(id)); saveDeletedIds();
+    const driveTC=JSON.parse(JSON.stringify(driveData.testcases||[]));
+    const driveIds=new Set(driveTC.map(t=>t.id));
+    testcases.forEach(t=>{if(!driveIds.has(t.id)&&!deletedIds.has(t.id))driveTC.push(t);});
+    const driveSuites=JSON.parse(JSON.stringify(driveData.suites||[]));
+    const driveSuiteIds=new Set(driveSuites.map(s=>s.id));
+    suites.forEach(s=>{if(!driveSuiteIds.has(s.id)&&!deletedIds.has(s.id))driveSuites.push(s);});
+    const driveTeams=JSON.parse(JSON.stringify(driveData.teams||[]));
+    const driveTeamIds=new Set(driveTeams.map(t=>t.id));
+    teams.forEach(t=>{if(!driveTeamIds.has(t.id)&&!deletedIds.has(t.id))driveTeams.push(t);});
+    teams=driveTeams; suites=driveSuites;
+    testcases=driveTC.filter(t=>!deletedIds.has(t.id));
+    plans=driveData.plans||plans;
+    counter=Math.max(driveData.counter||1,counter);
+    planCounter=Math.max(driveData.planCounter||1,planCounter);
+    runCounter=Math.max(driveData.runCounter||1,runCounter);
+    teamCounter=Math.max(driveData.teamCounter||1,teamCounter);
+    saveData('Loaded from Google Drive: '+_gdSelectedFileName);
+    closeDriveModal();
+    activeSuiteId=null;selectedTC=null;editingTC=null;activePlanId=null;
+    closeDetail(); renderTeamScreen();
+    showToast('✓ Loaded from Drive — '+testcases.length+' test cases');
+  }).catch(err=>{
+    showToast('Load failed: '+(err.message||'unknown error'));
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-cloud-download"></i> Load this file';}
+  });
+}
+
+/* ── Boot ── */
+window.addEventListener('load',()=>setTimeout(gdInit,800));
+</script>
+
+<!-- Drive Modal -->
+<div class="modal-backdrop" id="driveModal" onclick="if(event.target===this)closeDriveModal()">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h2 id="driveModalTitle"><i class="ti ti-brand-google-drive" style="color:#4285F4"></i> Google Drive</h2>
+      <button class="btn sm" onclick="closeDriveModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body gdrive-modal-body" id="driveModalBody"></div>
+    <div class="modal-foot" id="driveModalFoot" style="display:none">
+      <button class="btn" onclick="closeDriveModal()">Cancel</button>
+      <button class="btn primary" id="driveModalAction" onclick="doDriveAction()" disabled></button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
